@@ -2,60 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Gully League - Bold & Sporty Design System */
+/* Gully League - Dark Neon Design System */
 
 @layer base {
   :root {
-    /* Dark sporty base */
-    --background: 220 20% 10%;
-    --foreground: 0 0% 98%;
+    /* Deep dark base */
+    --background: 220 30% 6%;
+    --foreground: 210 20% 95%;
 
     /* Cards with subtle dark contrast */
-    --card: 220 18% 14%;
-    --card-foreground: 0 0% 98%;
+    --card: 220 25% 10%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 220 18% 14%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 220 25% 10%;
+    --popover-foreground: 210 20% 95%;
 
-    /* Vibrant grass green primary */
-    --primary: 142 76% 45%;
-    --primary-foreground: 0 0% 100%;
+    /* Neon cyan/teal primary */
+    --primary: 175 85% 45%;
+    --primary-foreground: 220 30% 6%;
 
-    /* Orange accent secondary */
-    --secondary: 24 95% 55%;
-    --secondary-foreground: 0 0% 100%;
+    /* Gold accent secondary */
+    --secondary: 45 100% 50%;
+    --secondary-foreground: 220 30% 6%;
 
     /* Muted dark tones */
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 220 15% 55%;
 
-    /* Accent - bright orange */
-    --accent: 24 95% 55%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - neon gold */
+    --accent: 45 100% 50%;
+    --accent-foreground: 220 30% 6%;
 
     /* Destructive red */
     --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 20% 95%;
 
-    --border: 220 15% 25%;
-    --input: 220 15% 25%;
-    --ring: 142 76% 45%;
+    --border: 220 20% 18%;
+    --input: 220 20% 18%;
+    --ring: 175 85% 45%;
 
     --radius: 0.75rem;
 
-    /* Custom sporty gradients */
-    --gradient-pitch: linear-gradient(135deg, hsl(142 76% 35%) 0%, hsl(142 76% 25%) 100%);
-    --gradient-fire: linear-gradient(135deg, hsl(24 95% 55%) 0%, hsl(0 72% 51%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(45 100% 50%) 0%, hsl(35 100% 45%) 100%);
+    /* Neon colors for glows */
+    --neon-cyan: 175 85% 45%;
+    --neon-green: 150 80% 45%;
+    --neon-gold: 45 100% 50%;
+    --neon-blue: 210 100% 55%;
 
-    --sidebar-background: 220 20% 10%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 142 76% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 18% 14%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 220 15% 25%;
-    --sidebar-ring: 142 76% 45%;
+    --sidebar-background: 220 30% 6%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 175 85% 45%;
+    --sidebar-primary-foreground: 220 30% 6%;
+    --sidebar-accent: 220 25% 10%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 175 85% 45%;
   }
 }
 
@@ -70,32 +71,58 @@
   }
 }
 
-/* Custom utility classes for sporty design */
+/* Custom utility classes for neon design */
 @layer utilities {
-  .gradient-pitch {
-    background: linear-gradient(135deg, hsl(142 76% 35%) 0%, hsl(142 76% 25%) 100%);
-  }
-  
-  .gradient-fire {
-    background: linear-gradient(135deg, hsl(24 95% 55%) 0%, hsl(0 72% 51%) 100%);
+  .gradient-neon {
+    background: linear-gradient(135deg, hsl(175 85% 45%) 0%, hsl(150 80% 45%) 100%);
   }
   
   .gradient-gold {
     background: linear-gradient(135deg, hsl(45 100% 50%) 0%, hsl(35 100% 45%) 100%);
   }
   
+  .gradient-dark {
+    background: linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(220 30% 6%) 100%);
+  }
+  
   .text-gradient-gold {
-    background: linear-gradient(135deg, hsl(45 100% 50%) 0%, hsl(35 100% 45%) 100%);
+    background: linear-gradient(135deg, hsl(45 100% 55%) 0%, hsl(35 100% 50%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
-  .shadow-glow-green {
-    box-shadow: 0 0 30px hsl(142 76% 45% / 0.3);
+  .text-gradient-neon {
+    background: linear-gradient(135deg, hsl(175 85% 50%) 0%, hsl(150 80% 50%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
-  .shadow-glow-orange {
-    box-shadow: 0 0 30px hsl(24 95% 55% / 0.3);
+  .shadow-glow-cyan {
+    box-shadow: 0 0 30px hsl(175 85% 45% / 0.4), 0 0 60px hsl(175 85% 45% / 0.2);
+  }
+  
+  .shadow-glow-gold {
+    box-shadow: 0 0 30px hsl(45 100% 50% / 0.4), 0 0 60px hsl(45 100% 50% / 0.2);
+  }
+  
+  .shadow-glow-green {
+    box-shadow: 0 0 30px hsl(150 80% 45% / 0.4), 0 0 60px hsl(150 80% 45% / 0.2);
+  }
+  
+  .border-glow-cyan {
+    border-color: hsl(175 85% 45%);
+    box-shadow: 0 0 10px hsl(175 85% 45% / 0.3), inset 0 0 10px hsl(175 85% 45% / 0.1);
+  }
+  
+  .neon-text-cyan {
+    color: hsl(175 85% 55%);
+    text-shadow: 0 0 10px hsl(175 85% 45% / 0.8), 0 0 20px hsl(175 85% 45% / 0.5);
+  }
+  
+  .neon-text-gold {
+    color: hsl(45 100% 55%);
+    text-shadow: 0 0 10px hsl(45 100% 50% / 0.8), 0 0 20px hsl(45 100% 50% / 0.5);
   }
 }

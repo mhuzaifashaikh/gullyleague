@@ -21,9 +21,9 @@ const iconMap = {
 };
 
 const colorMap = {
-  trophy: 'text-yellow-500',
-  target: 'text-primary',
-  shield: 'text-secondary',
+  trophy: 'neon-text-gold',
+  target: 'neon-text-cyan',
+  shield: 'text-emerald-400',
 };
 
 export const RankingList = ({ title, icon, entries, unit }: RankingListProps) => {
@@ -31,7 +31,7 @@ export const RankingList = ({ title, icon, entries, unit }: RankingListProps) =>
   const color = colorMap[icon];
 
   return (
-    <Card className="bg-card border-border">
+    <Card className="bg-card/80 border-border/50 backdrop-blur-sm">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Icon className={`h-5 w-5 ${color}`} />
@@ -46,7 +46,7 @@ export const RankingList = ({ title, icon, entries, unit }: RankingListProps) =>
             <div
               key={entry.playerId}
               className={`flex items-center justify-between p-3 rounded-lg ${
-                index === 0 ? 'bg-primary/10 border border-primary/20' : 'bg-muted/50'
+                index === 0 ? 'bg-secondary/10 border border-secondary/30' : 'bg-muted/30'
               }`}
             >
               <div className="flex items-center gap-3">
