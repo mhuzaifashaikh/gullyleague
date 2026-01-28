@@ -3,33 +3,41 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PinDialog } from '@/components/PinDialog';
+import { GullyDorDialog } from '@/components/GullyDorDialog';
 import { StandingsSection } from '@/components/StandingsSection';
 import { useAdminMode } from '@/hooks/useAdminMode';
 import { useActiveSeason } from '@/hooks/useSeasons';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
-import { Shield, Zap, Calendar, Clock } from 'lucide-react';
+import { useGullyDor } from '@/hooks/useGullyDor';
+import { Shield, Zap, Calendar, Clock, Trophy } from 'lucide-react';
 
 const Index = () => {
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
+  const [gullyDorOpen, setGullyDorOpen] = useState(false);
   const { isAdmin, verifyPin } = useAdminMode();
   const { data: season } = useActiveSeason();
   const { data: seasonStats, isLoading: seasonLoading } = useLeaderboard(season?.id || null, 'season');
   const { data: weekStats, isLoading: weekLoading } = useLeaderboard(season?.id || null, 'week');
+  const { data: gullyDorEntries, isLoading: gullyDorLoading } = useGullyDor(season?.id || null);
 
   return (
     <div className="min-h-screen bg-background gradient-dark">
       {/* Header */}
       <header className="bg-card/50 border-b border-border/50 p-6 pb-4">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-1">
+          <div className="flex items-center justify-center gap-2 mb-3">
             <Zap className="h-7 w-7 text-primary neon-text-cyan" />
             <h1 className="text-2xl font-black text-foreground tracking-tight">
               GULLY <span className="text-gradient-gold">LEAGUE</span>
             </h1>
           </div>
-          <p className="text-muted-foreground text-sm">
-            {season?.name || 'Loading...'} • Track your squad's glory
-          </p>
+          <Button
+            onClick={() => setGullyDorOpen(true)}
+            className="gradient-gold shadow-glow-gold text-secondary-foreground font-bold"
+          >
+            <Trophy className="h-4 w-4 mr-2" />
+            Gully D'Or
+          </Button>
         </div>
       </header>
 
@@ -135,6 +143,13 @@ const Index = () => {
         open={pinDialogOpen}
         onOpenChange={setPinDialogOpen}
         onVerify={verifyPin}
+      />
+
+      <GullyDorDialog
+        open={gullyDorOpen}
+        onOpenChange={setGullyDorOpen}
+        entries={gullyDorEntries || []}
+        isLoading={gullyDorLoading}
       />
     </div>
   );
