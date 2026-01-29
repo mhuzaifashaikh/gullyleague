@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { PinDialog } from '@/components/PinDialog';
 import { GullyDorDialog } from '@/components/GullyDorDialog';
 import { StandingsSection } from '@/components/StandingsSection';
+import { WeekCard } from '@/components/WeekCard';
 import { useAdminMode } from '@/hooks/useAdminMode';
 import { useActiveSeason } from '@/hooks/useSeasons';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { useGullyDor } from '@/hooks/useGullyDor';
+import { useWeeklyBreakdown } from '@/hooks/useWeeklyBreakdown';
 import { Shield, Zap, Calendar, Clock, Trophy } from 'lucide-react';
 
 const Index = () => {
@@ -17,7 +20,7 @@ const Index = () => {
   const { isAdmin, verifyPin } = useAdminMode();
   const { data: season } = useActiveSeason();
   const { data: seasonStats, isLoading: seasonLoading } = useLeaderboard(season?.id || null, 'season');
-  const { data: weekStats, isLoading: weekLoading } = useLeaderboard(season?.id || null, 'week');
+  const { data: weeklyBreakdown, isLoading: weeklyLoading } = useWeeklyBreakdown(season?.id || null);
   const { data: gullyDorEntries, isLoading: gullyDorLoading } = useGullyDor(season?.id || null);
 
   return (
@@ -61,58 +64,60 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Season Stats - Top 7 scorers & assists */}
+          {/* Season Stats - Top 7 scorers, assists, and keepers */}
           <TabsContent value="season" className="mt-0">
             {seasonLoading ? (
               <p className="text-center text-muted-foreground py-8">Loading...</p>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <StandingsSection
+                    title="Top Scorers"
+                    icon="trophy"
+                    entries={seasonStats?.topScorers || []}
+                    unit="goals"
+                    defaultShowCount={7}
+                  />
+                  <StandingsSection
+                    title="Top Assisters"
+                    icon="target"
+                    entries={seasonStats?.topAssisters || []}
+                    unit="assists"
+                    defaultShowCount={7}
+                  />
+                </div>
                 <StandingsSection
-                  title="Top Scorers"
-                  icon="trophy"
-                  entries={seasonStats?.topScorers || []}
-                  unit="goals"
-                  defaultShowCount={7}
-                />
-                <StandingsSection
-                  title="Top Assisters"
-                  icon="target"
-                  entries={seasonStats?.topAssisters || []}
-                  unit="assists"
+                  title="Top Goalkeeper Wins"
+                  icon="shield"
+                  entries={seasonStats?.topKeepers || []}
+                  unit="wins"
                   defaultShowCount={7}
                 />
               </div>
             )}
           </TabsContent>
 
-          {/* Weekly Stats - All 3 categories */}
+          {/* Weekly Breakdown - Week cards */}
           <TabsContent value="week" className="mt-0">
-            {weekLoading ? (
+            {weeklyLoading ? (
               <p className="text-center text-muted-foreground py-8">Loading...</p>
+            ) : weeklyBreakdown && weeklyBreakdown.length > 0 ? (
+              <ScrollArea className="h-[calc(100vh-320px)]">
+                <div className="space-y-4 pr-4">
+                  {weeklyBreakdown.map((week, idx) => (
+                    <WeekCard
+                      key={idx}
+                      weekLabel={week.weekLabel}
+                      gamesPlayed={week.gamesPlayed}
+                      topScorer={week.topScorer}
+                      topAssister={week.topAssister}
+                      topKeeper={week.topKeeper}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
             ) : (
-              <div className="grid gap-4 md:grid-cols-3">
-                <StandingsSection
-                  title="Top Scorers"
-                  icon="trophy"
-                  entries={weekStats?.topScorers || []}
-                  unit="goals"
-                  defaultShowCount={5}
-                />
-                <StandingsSection
-                  title="Top Assisters"
-                  icon="target"
-                  entries={weekStats?.topAssisters || []}
-                  unit="assists"
-                  defaultShowCount={5}
-                />
-                <StandingsSection
-                  title="Top Keepers"
-                  icon="shield"
-                  entries={weekStats?.topKeepers || []}
-                  unit="wins"
-                  defaultShowCount={5}
-                />
-              </div>
+              <p className="text-center text-muted-foreground py-8">No games played yet</p>
             )}
           </TabsContent>
         </Tabs>
