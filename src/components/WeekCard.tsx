@@ -7,6 +7,7 @@ interface WeekCardProps {
   topScorer: { playerName: string; count: number } | null;
   topAssister: { playerName: string; count: number } | null;
   topKeeper: { playerName: string; count: number } | null;
+  onClick?: () => void;
 }
 
 export const WeekCard = ({ 
@@ -14,10 +15,14 @@ export const WeekCard = ({
   gamesPlayed, 
   topScorer, 
   topAssister, 
-  topKeeper 
+  topKeeper,
+  onClick,
 }: WeekCardProps) => {
   return (
-    <Card className="bg-card/80 border-border/50 backdrop-blur-sm hover:border-primary/30 transition-colors">
+    <Card 
+      className="bg-card/80 border-border/50 backdrop-blur-sm hover:border-primary/30 transition-colors cursor-pointer"
+      onClick={onClick}
+    >
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2 text-foreground">
