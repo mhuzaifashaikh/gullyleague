@@ -5,12 +5,13 @@ import { PlayerManagement } from '@/components/PlayerManagement';
 import { SeasonManagement } from '@/components/SeasonManagement';
 import { GameSetup } from '@/components/GameSetup';
 import { GameRecorder } from '@/components/GameRecorder';
+import { GameHistory } from '@/components/GameHistory';
 import { usePlayers } from '@/hooks/usePlayers';
 import { useActiveSeason } from '@/hooks/useSeasons';
 import { isGameActive } from '@/lib/gameStore';
-import { ArrowLeft, Play, LogOut } from 'lucide-react';
+import { ArrowLeft, Play, LogOut, History } from 'lucide-react';
 
-type AdminView = 'menu' | 'players' | 'game-setup' | 'game-active' | 'season';
+type AdminView = 'menu' | 'players' | 'game-setup' | 'game-active' | 'season' | 'history';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -51,6 +52,12 @@ const Admin = () => {
         );
       case 'season':
         return <SeasonManagement />;
+      case 'history':
+        return season ? (
+          <GameHistory seasonId={season.id} />
+        ) : (
+          <p className="text-muted-foreground text-center py-8">Loading...</p>
+        );
       default:
         return (
           <div className="space-y-4">
@@ -60,6 +67,15 @@ const Admin = () => {
             >
               <Play className="h-6 w-6 mr-3" />
               Start New Game
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full h-14"
+              onClick={() => setView('history')}
+            >
+              <History className="h-5 w-5 mr-2" />
+              Edit Game History
             </Button>
 
             <Button
@@ -122,6 +138,7 @@ const Admin = () => {
               {view === 'game-setup' && 'Set up a new game'}
               {view === 'game-active' && 'Recording in progress'}
               {view === 'season' && 'Manage seasons'}
+              {view === 'history' && 'Edit past games'}
             </p>
           </div>
         </div>
