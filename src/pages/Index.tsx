@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PinDialog } from '@/components/PinDialog';
 import { GullyDorDialog } from '@/components/GullyDorDialog';
+import { WeekDetailDialog } from '@/components/WeekDetailDialog';
 import { StandingsSection } from '@/components/StandingsSection';
 import { WeekCard } from '@/components/WeekCard';
 import { useAdminMode } from '@/hooks/useAdminMode';
@@ -17,6 +18,7 @@ import { Shield, Zap, Calendar, Clock, Trophy } from 'lucide-react';
 const Index = () => {
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [gullyDorOpen, setGullyDorOpen] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState<{ label: string; start: Date; end: Date } | null>(null);
   const { isAdmin, verifyPin } = useAdminMode();
   const { data: season } = useActiveSeason();
   const { data: seasonStats, isLoading: seasonLoading } = useLeaderboard(season?.id || null, 'season');
@@ -112,6 +114,11 @@ const Index = () => {
                       topScorer={week.topScorer}
                       topAssister={week.topAssister}
                       topKeeper={week.topKeeper}
+                      onClick={() => setSelectedWeek({ 
+                        label: week.weekLabel, 
+                        start: week.weekStart, 
+                        end: week.weekEnd 
+                      })}
                     />
                   ))}
                 </div>
@@ -155,6 +162,15 @@ const Index = () => {
         onOpenChange={setGullyDorOpen}
         entries={gullyDorEntries || []}
         isLoading={gullyDorLoading}
+      />
+
+      <WeekDetailDialog
+        open={!!selectedWeek}
+        onOpenChange={(open) => !open && setSelectedWeek(null)}
+        seasonId={season?.id || null}
+        weekLabel={selectedWeek?.label || ''}
+        weekStart={selectedWeek?.start || new Date()}
+        weekEnd={selectedWeek?.end || new Date()}
       />
     </div>
   );
