@@ -11,30 +11,21 @@ interface GameDetail {
   assists: { playerId: string; playerName: string; team: string }[];
 }
 
-export const useWeeklyDetails = (
-  seasonId: string | null,
-  weekStart: Date | null,
-  weekEnd: Date | null
-) => {
+export const useWeeklyDetails = (gameId: string | null) => {
   return useQuery({
-    queryKey: ['weeklyDetails', seasonId, weekStart?.toISOString()],
-    queryFn: async (): Promise<GameDetail[]> => {
-      if (!seasonId || !weekStart || !weekEnd) return [];
+    queryKey: ['weeklyDetails', gameId],
+    queryFn: async (): Promise<GameDetail | null> => {
+      if (!gameId) return null;
 
-      // Get games in this week
-      const { data: games, error: gamesError } = await supabase
+      // Get the game
+      const { data: game, error: gameError } = await supabase
         .from('games')
         .select('id, winning_team, team_a_keeper_id, team_b_keeper_id, played_at')
-        .eq('season_id', seasonId)
-        .eq('is_active', false)
-        .gte('played_at', weekStart.toISOString())
-        .lte('played_at', weekEnd.toISOString())
-        .order('played_at', { ascending: false });
+        .eq('id', gameId)
+        .single();
 
-      if (gamesError) throw gamesError;
-      if (!games || games.length === 0) return [];
-
-      const gameIds = games.map(g => g.id);
+      if (gameError) throw gameError;
+      if (!game) return null;
 
       // Get all players
       const { data: players, error: playersError } = await supabase
@@ -47,70 +38,64 @@ export const useWeeklyDetails = (
       // Get game players
       const { data: gamePlayers, error: gpError } = await supabase
         .from('game_players')
-        .select('game_id, player_id, team')
-        .in('game_id', gameIds);
+        .select('player_id, team')
+        .eq('game_id', gameId);
 
       if (gpError) throw gpError;
 
       // Get events
       const { data: events, error: eventsError } = await supabase
         .from('game_events')
-        .select('game_id, player_id, event_type')
-        .in('game_id', gameIds);
+        .select('player_id, event_type')
+        .eq('game_id', gameId);
 
       if (eventsError) throw eventsError;
 
-      // Build game details
-      return games.map(game => {
-        const gamePlayersList = gamePlayers?.filter(gp => gp.game_id === game.id) || [];
-        const gameEvents = events?.filter(e => e.game_id === game.id) || [];
+      const teamAPlayers = (gamePlayers || [])
+        .filter(gp => gp.team === 'A')
+        .map(gp => ({
+          id: gp.player_id,
+          name: playerMap.get(gp.player_id) || 'Unknown',
+          isKeeper: gp.player_id === game.team_a_keeper_id,
+        }));
 
-        const teamAPlayers = gamePlayersList
-          .filter(gp => gp.team === 'A')
-          .map(gp => ({
-            id: gp.player_id,
-            name: playerMap.get(gp.player_id) || 'Unknown',
-            isKeeper: gp.player_id === game.team_a_keeper_id,
-          }));
+      const teamBPlayers = (gamePlayers || [])
+        .filter(gp => gp.team === 'B')
+        .map(gp => ({
+          id: gp.player_id,
+          name: playerMap.get(gp.player_id) || 'Unknown',
+          isKeeper: gp.player_id === game.team_b_keeper_id,
+        }));
 
-        const teamBPlayers = gamePlayersList
-          .filter(gp => gp.team === 'B')
-          .map(gp => ({
-            id: gp.player_id,
-            name: playerMap.get(gp.player_id) || 'Unknown',
-            isKeeper: gp.player_id === game.team_b_keeper_id,
-          }));
+      const playerTeamMap = new Map<string, string>();
+      (gamePlayers || []).forEach(gp => playerTeamMap.set(gp.player_id, gp.team));
 
-        const playerTeamMap = new Map<string, string>();
-        gamePlayersList.forEach(gp => playerTeamMap.set(gp.player_id, gp.team));
+      const goals = (events || [])
+        .filter(e => e.event_type === 'goal')
+        .map(e => ({
+          playerId: e.player_id,
+          playerName: playerMap.get(e.player_id) || 'Unknown',
+          team: playerTeamMap.get(e.player_id) || '',
+        }));
 
-        const goals = gameEvents
-          .filter(e => e.event_type === 'goal')
-          .map(e => ({
-            playerId: e.player_id,
-            playerName: playerMap.get(e.player_id) || 'Unknown',
-            team: playerTeamMap.get(e.player_id) || '',
-          }));
+      const assists = (events || [])
+        .filter(e => e.event_type === 'assist')
+        .map(e => ({
+          playerId: e.player_id,
+          playerName: playerMap.get(e.player_id) || 'Unknown',
+          team: playerTeamMap.get(e.player_id) || '',
+        }));
 
-        const assists = gameEvents
-          .filter(e => e.event_type === 'assist')
-          .map(e => ({
-            playerId: e.player_id,
-            playerName: playerMap.get(e.player_id) || 'Unknown',
-            team: playerTeamMap.get(e.player_id) || '',
-          }));
-
-        return {
-          gameId: game.id,
-          playedAt: new Date(game.played_at),
-          winningTeam: game.winning_team,
-          teamAPlayers,
-          teamBPlayers,
-          goals,
-          assists,
-        };
-      });
+      return {
+        gameId: game.id,
+        playedAt: new Date(game.played_at),
+        winningTeam: game.winning_team,
+        teamAPlayers,
+        teamBPlayers,
+        goals,
+        assists,
+      };
     },
-    enabled: !!seasonId && !!weekStart && !!weekEnd,
+    enabled: !!gameId,
   });
 };

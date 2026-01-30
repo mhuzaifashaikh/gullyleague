@@ -3,13 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, format, isSameWeek } from 'date-fns';
 
 interface WeekStats {
-  weekStart: Date;
-  weekEnd: Date;
+  gameId: string;
+  playedAt: Date;
   weekLabel: string;
+  weekNumber: number;
   topScorer: { playerId: string; playerName: string; count: number } | null;
   topAssister: { playerId: string; playerName: string; count: number } | null;
-  topKeeper: { playerId: string; playerName: string; count: number } | null;
-  gamesPlayed: number;
+  topKeeper: { playerId: string; playerName: string } | null;
 }
 
 export const useWeeklyBreakdown = (seasonId: string | null) => {
@@ -18,13 +18,13 @@ export const useWeeklyBreakdown = (seasonId: string | null) => {
     queryFn: async (): Promise<WeekStats[]> => {
       if (!seasonId) return [];
 
-      // Get all completed games for this season
+      // Get all completed games for this season (oldest first for numbering)
       const { data: games, error: gamesError } = await supabase
         .from('games')
         .select('id, winning_team, team_a_keeper_id, team_b_keeper_id, played_at')
         .eq('season_id', seasonId)
         .eq('is_active', false)
-        .order('played_at', { ascending: false });
+        .order('played_at', { ascending: true });
 
       if (gamesError) throw gamesError;
       if (!games || games.length === 0) return [];
@@ -48,32 +48,16 @@ export const useWeeklyBreakdown = (seasonId: string | null) => {
 
       const playerMap = new Map(players?.map(p => [p.id, p.name]) || []);
 
-      // Group games by week
-      const weekMap = new Map<string, typeof games>();
-      games.forEach(game => {
-        const gameDate = new Date(game.played_at);
-        const weekStartDate = startOfWeek(gameDate, { weekStartsOn: 1 });
-        const weekKey = weekStartDate.toISOString();
-        
-        if (!weekMap.has(weekKey)) {
-          weekMap.set(weekKey, []);
-        }
-        weekMap.get(weekKey)!.push(game);
-      });
+      // Each game = 1 week, calculate stats per game
+      const weekStats: WeekStats[] = games.map((game, index) => {
+        const weekNumber = index + 1;
+        const gameEvents = events?.filter(e => e.game_id === game.id) || [];
 
-      // Calculate stats for each week
-      const weekStats: WeekStats[] = [];
-
-      weekMap.forEach((weekGames, weekKey) => {
-        const weekStartDate = new Date(weekKey);
-        const weekEndDate = endOfWeek(weekStartDate, { weekStartsOn: 1 });
-        const weekGameIds = weekGames.map(g => g.id);
-        
-        // Count goals and assists for this week
+        // Count goals and assists for this game
         const goalCounts = new Map<string, number>();
         const assistCounts = new Map<string, number>();
 
-        events?.filter(e => weekGameIds.includes(e.game_id)).forEach(event => {
+        gameEvents.forEach(event => {
           if (event.event_type === 'goal') {
             goalCounts.set(event.player_id, (goalCounts.get(event.player_id) || 0) + 1);
           } else if (event.event_type === 'assist') {
@@ -81,17 +65,21 @@ export const useWeeklyBreakdown = (seasonId: string | null) => {
           }
         });
 
-        // Count keeper wins for this week
-        const keeperWins = new Map<string, number>();
-        weekGames.forEach(game => {
-          if (game.winning_team === 'A' && game.team_a_keeper_id) {
-            keeperWins.set(game.team_a_keeper_id, (keeperWins.get(game.team_a_keeper_id) || 0) + 1);
-          } else if (game.winning_team === 'B' && game.team_b_keeper_id) {
-            keeperWins.set(game.team_b_keeper_id, (keeperWins.get(game.team_b_keeper_id) || 0) + 1);
-          }
-        });
+        // Get winning keeper
+        let topKeeper: { playerId: string; playerName: string } | null = null;
+        if (game.winning_team === 'A' && game.team_a_keeper_id) {
+          topKeeper = {
+            playerId: game.team_a_keeper_id,
+            playerName: playerMap.get(game.team_a_keeper_id) || 'Unknown',
+          };
+        } else if (game.winning_team === 'B' && game.team_b_keeper_id) {
+          topKeeper = {
+            playerId: game.team_b_keeper_id,
+            playerName: playerMap.get(game.team_b_keeper_id) || 'Unknown',
+          };
+        }
 
-        // Get top for each category
+        // Get top scorer and assister
         const getTop = (countMap: Map<string, number>) => {
           const sorted = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
           if (sorted.length === 0) return null;
@@ -102,24 +90,19 @@ export const useWeeklyBreakdown = (seasonId: string | null) => {
           };
         };
 
-        const isCurrentWeek = isSameWeek(weekStartDate, new Date(), { weekStartsOn: 1 });
-        const weekLabel = isCurrentWeek 
-          ? 'This Week' 
-          : `${format(weekStartDate, 'MMM d')} - ${format(weekEndDate, 'MMM d')}`;
-
-        weekStats.push({
-          weekStart: weekStartDate,
-          weekEnd: weekEndDate,
-          weekLabel,
+        return {
+          gameId: game.id,
+          playedAt: new Date(game.played_at),
+          weekLabel: `Week ${weekNumber}`,
+          weekNumber,
           topScorer: getTop(goalCounts),
           topAssister: getTop(assistCounts),
-          topKeeper: getTop(keeperWins),
-          gamesPlayed: weekGames.length,
-        });
+          topKeeper,
+        };
       });
 
-      // Sort by week start date (most recent first)
-      return weekStats.sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime());
+      // Sort by week number (most recent/highest first)
+      return weekStats.sort((a, b) => b.weekNumber - a.weekNumber);
     },
     enabled: !!seasonId,
   });
