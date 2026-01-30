@@ -1,18 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Target, Shield, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface WeekCardProps {
   weekLabel: string;
-  gamesPlayed: number;
+  playedAt: Date;
   topScorer: { playerName: string; count: number } | null;
   topAssister: { playerName: string; count: number } | null;
-  topKeeper: { playerName: string; count: number } | null;
+  topKeeper: { playerName: string } | null;
   onClick?: () => void;
 }
 
 export const WeekCard = ({ 
   weekLabel, 
-  gamesPlayed, 
+  playedAt,
   topScorer, 
   topAssister, 
   topKeeper,
@@ -30,7 +31,7 @@ export const WeekCard = ({
             {weekLabel}
           </span>
           <span className="text-sm text-muted-foreground font-normal">
-            {gamesPlayed} game{gamesPlayed !== 1 ? 's' : ''}
+            {format(playedAt, 'MMM d, yyyy')}
           </span>
         </CardTitle>
       </CardHeader>
@@ -67,17 +68,14 @@ export const WeekCard = ({
           )}
         </div>
 
-        {/* Top Keeper */}
+        {/* Winning Keeper */}
         <div className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-lg">
           <div className="flex items-center gap-2">
             <Shield className="h-4 w-4 text-green-400" />
-            <span className="text-sm text-muted-foreground">Top Keeper</span>
+            <span className="text-sm text-muted-foreground">Winning Keeper</span>
           </div>
           {topKeeper ? (
-            <div className="text-right">
-              <span className="font-semibold text-foreground">{topKeeper.playerName}</span>
-              <span className="text-sm text-green-400 ml-2">{topKeeper.count} wins</span>
-            </div>
+            <span className="font-semibold text-foreground">{topKeeper.playerName}</span>
           ) : (
             <span className="text-sm text-muted-foreground">-</span>
           )}

@@ -18,7 +18,7 @@ import { Shield, Zap, Calendar, Clock, Trophy } from 'lucide-react';
 const Index = () => {
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [gullyDorOpen, setGullyDorOpen] = useState(false);
-  const [selectedWeek, setSelectedWeek] = useState<{ label: string; start: Date; end: Date } | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<{ gameId: string; label: string } | null>(null);
   const { isAdmin, verifyPin } = useAdminMode();
   const { data: season } = useActiveSeason();
   const { data: seasonStats, isLoading: seasonLoading } = useLeaderboard(season?.id || null, 'season');
@@ -106,18 +106,17 @@ const Index = () => {
             ) : weeklyBreakdown && weeklyBreakdown.length > 0 ? (
               <ScrollArea className="h-[calc(100vh-320px)]">
                 <div className="space-y-4 pr-4">
-                  {weeklyBreakdown.map((week, idx) => (
+                  {weeklyBreakdown.map((week) => (
                     <WeekCard
-                      key={idx}
+                      key={week.gameId}
                       weekLabel={week.weekLabel}
-                      gamesPlayed={week.gamesPlayed}
+                      playedAt={week.playedAt}
                       topScorer={week.topScorer}
                       topAssister={week.topAssister}
                       topKeeper={week.topKeeper}
                       onClick={() => setSelectedWeek({ 
+                        gameId: week.gameId,
                         label: week.weekLabel, 
-                        start: week.weekStart, 
-                        end: week.weekEnd 
                       })}
                     />
                   ))}
@@ -167,10 +166,8 @@ const Index = () => {
       <WeekDetailDialog
         open={!!selectedWeek}
         onOpenChange={(open) => !open && setSelectedWeek(null)}
-        seasonId={season?.id || null}
+        gameId={selectedWeek?.gameId || null}
         weekLabel={selectedWeek?.label || ''}
-        weekStart={selectedWeek?.start || new Date()}
-        weekEnd={selectedWeek?.end || new Date()}
       />
     </div>
   );
