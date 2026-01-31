@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useGameHistory, useUpdateGameWinner, useAddGameEvent, useDeleteGameEvent } from '@/hooks/useGameHistory';
+import { useGameHistory, useUpdateGameWinner, useAddGameEvent, useDeleteGameEvent, useDeleteGame } from '@/hooks/useGameHistory';
 import { usePlayers } from '@/hooks/usePlayers';
 import { PlayerSelector } from './PlayerSelector';
 import { format } from 'date-fns';
@@ -20,9 +21,11 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
   const updateWinner = useUpdateGameWinner();
   const addEvent = useAddGameEvent();
   const deleteEvent = useDeleteGameEvent();
+  const deleteGame = useDeleteGame();
 
   const [editingGame, setEditingGame] = useState<string | null>(null);
   const [addingEvent, setAddingEvent] = useState<{ gameId: string; type: 'goal' | 'assist' } | null>(null);
+  const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
 
   const selectedGame = games?.find(g => g.id === editingGame);
   const gamePlayers = selectedGame 
@@ -59,6 +62,18 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
       toast.success('Event deleted');
     } catch {
       toast.error('Failed to delete event');
+    }
+  };
+
+  const handleDeleteGame = async () => {
+    if (!deletingGameId) return;
+    try {
+      await deleteGame.mutateAsync(deletingGameId);
+      toast.success('Game deleted successfully');
+      setDeletingGameId(null);
+      setEditingGame(null);
+    } catch {
+      toast.error('Failed to delete game');
     }
   };
 
@@ -220,6 +235,18 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
                   </ul>
                 </div>
               </div>
+
+              {/* Delete Game Button */}
+              <div className="pt-4 border-t border-border">
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => setDeletingGameId(selectedGame.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Entire Game
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
@@ -233,6 +260,28 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
         onSelect={handleAddEvent}
         title={addingEvent?.type === 'goal' ? '⚽ Who scored?' : '👟 Who assisted?'}
       />
+
+      {/* Delete Game Confirmation */}
+      <AlertDialog open={!!deletingGameId} onOpenChange={(open) => !open && setDeletingGameId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Game?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this game and all its stats (goals, assists, wins). This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteGame}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteGame.isPending}
+            >
+              {deleteGame.isPending ? 'Deleting...' : 'Delete Game'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

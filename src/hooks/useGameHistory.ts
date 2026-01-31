@@ -135,3 +135,41 @@ export const useDeleteGameEvent = () => {
     },
   });
 };
+
+export const useDeleteGame = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (gameId: string) => {
+      // Delete game events first
+      const { error: eventsError } = await supabase
+        .from('game_events')
+        .delete()
+        .eq('game_id', gameId);
+
+      if (eventsError) throw eventsError;
+
+      // Delete game players
+      const { error: playersError } = await supabase
+        .from('game_players')
+        .delete()
+        .eq('game_id', gameId);
+
+      if (playersError) throw playersError;
+
+      // Delete the game itself
+      const { error: gameError } = await supabase
+        .from('games')
+        .delete()
+        .eq('id', gameId);
+
+      if (gameError) throw gameError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gameHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+      queryClient.invalidateQueries({ queryKey: ['weeklyBreakdown'] });
+      queryClient.invalidateQueries({ queryKey: ['gullyDor'] });
+    },
+  });
+};
