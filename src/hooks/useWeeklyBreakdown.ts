@@ -7,6 +7,8 @@ interface WeekStats {
   playedAt: Date;
   weekLabel: string;
   weekNumber: number;
+  scoreA: number;
+  scoreB: number;
   topScorer: { playerId: string; playerName: string; count: number } | null;
   topAssister: { playerId: string; playerName: string; count: number } | null;
   topKeeper: { playerId: string; playerName: string } | null;
@@ -39,6 +41,14 @@ export const useWeeklyBreakdown = (seasonId: string | null) => {
 
       if (eventsError) throw eventsError;
 
+      // Get all game_players to know team assignments
+      const { data: gamePlayers, error: gamePlayersError } = await supabase
+        .from('game_players')
+        .select('game_id, player_id, team')
+        .in('game_id', gameIds);
+
+      if (gamePlayersError) throw gamePlayersError;
+
       // Get all players
       const { data: players, error: playersError } = await supabase
         .from('players')
@@ -47,19 +57,35 @@ export const useWeeklyBreakdown = (seasonId: string | null) => {
       if (playersError) throw playersError;
 
       const playerMap = new Map(players?.map(p => [p.id, p.name]) || []);
+      
+      // Create a map of game_id -> player_id -> team
+      const playerTeamMap = new Map<string, Map<string, string>>();
+      gamePlayers?.forEach(gp => {
+        if (!playerTeamMap.has(gp.game_id)) {
+          playerTeamMap.set(gp.game_id, new Map());
+        }
+        playerTeamMap.get(gp.game_id)!.set(gp.player_id, gp.team);
+      });
 
       // Each game = 1 week, calculate stats per game
       const weekStats: WeekStats[] = games.map((game, index) => {
         const weekNumber = index + 1;
         const gameEvents = events?.filter(e => e.game_id === game.id) || [];
+        const gameTeamMap = playerTeamMap.get(game.id) || new Map();
 
         // Count goals and assists for this game
         const goalCounts = new Map<string, number>();
         const assistCounts = new Map<string, number>();
+        let scoreA = 0;
+        let scoreB = 0;
 
         gameEvents.forEach(event => {
           if (event.event_type === 'goal') {
             goalCounts.set(event.player_id, (goalCounts.get(event.player_id) || 0) + 1);
+            // Count score by team
+            const team = gameTeamMap.get(event.player_id);
+            if (team === 'A') scoreA++;
+            else if (team === 'B') scoreB++;
           } else if (event.event_type === 'assist') {
             assistCounts.set(event.player_id, (assistCounts.get(event.player_id) || 0) + 1);
           }
@@ -95,6 +121,8 @@ export const useWeeklyBreakdown = (seasonId: string | null) => {
           playedAt: new Date(game.played_at),
           weekLabel: `Week ${weekNumber}`,
           weekNumber,
+          scoreA,
+          scoreB,
           topScorer: getTop(goalCounts),
           topAssister: getTop(assistCounts),
           topKeeper,
