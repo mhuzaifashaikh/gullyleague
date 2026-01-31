@@ -12,7 +12,7 @@ interface StartGameParams {
 interface EndGameParams {
   gameId: string;
   winningTeam: 'A' | 'B';
-  events: Array<{ type: 'goal' | 'assist'; playerId: string }>;
+  events: Array<{ type: 'goal' | 'assist'; playerId: string; minute: number }>;
 }
 
 export const useStartGame = () => {
@@ -68,6 +68,7 @@ export const useEndGame = () => {
           game_id: gameId,
           player_id: event.playerId,
           event_type: event.type,
+          minute: event.minute,
         }));
         
         const { error: eventsError } = await supabase

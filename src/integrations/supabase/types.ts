@@ -20,6 +20,7 @@ export type Database = {
           event_type: string
           game_id: string
           id: string
+          minute: number | null
           player_id: string
         }
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           event_type: string
           game_id: string
           id?: string
+          minute?: number | null
           player_id: string
         }
         Update: {
@@ -34,6 +36,7 @@ export type Database = {
           event_type?: string
           game_id?: string
           id?: string
+          minute?: number | null
           player_id?: string
         }
         Relationships: [
