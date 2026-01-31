@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlayerSelector } from './PlayerSelector';
 import { Player } from '@/hooks/usePlayers';
 import { useEndGame } from '@/hooks/useGames';
-import { getGameState, addEvent, getGameEvents, endGame as endGameState } from '@/lib/gameStore';
-import { Goal, Footprints, Flag, Trophy } from 'lucide-react';
+import { getGameState, addEvent, getGameEvents, getGameMinute, endGame as endGameState } from '@/lib/gameStore';
+import { Goal, Footprints, Flag, Trophy, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface GameRecorderProps {
@@ -17,10 +17,19 @@ export const GameRecorder = ({ players, onGameEnd }: GameRecorderProps) => {
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [selectorType, setSelectorType] = useState<'goal' | 'assist'>('goal');
   const [showEndGame, setShowEndGame] = useState(false);
+  const [currentMinute, setCurrentMinute] = useState(getGameMinute());
   const endGameMutation = useEndGame();
   
   const gameState = getGameState();
   const events = getGameEvents();
+  
+  // Update timer every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMinute(getGameMinute());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
   
   const allPlayersInGame = players.filter(
     p => gameState.teamAPlayers.includes(p.id) || gameState.teamBPlayers.includes(p.id)
@@ -34,7 +43,8 @@ export const GameRecorder = ({ players, onGameEnd }: GameRecorderProps) => {
   const handlePlayerSelect = (playerId: string) => {
     addEvent(selectorType, playerId);
     const playerName = players.find(p => p.id === playerId)?.name || 'Player';
-    toast.success(`${selectorType === 'goal' ? '⚽ Goal' : '👟 Assist'} recorded for ${playerName}!`);
+    const minute = getGameMinute();
+    toast.success(`${selectorType === 'goal' ? '⚽ Goal' : '👟 Assist'} recorded for ${playerName} at ${minute}'!`);
   };
   
   const handleEndGame = async (winningTeam: 'A' | 'B') => {
@@ -44,7 +54,7 @@ export const GameRecorder = ({ players, onGameEnd }: GameRecorderProps) => {
       await endGameMutation.mutateAsync({
         gameId: gameState.gameId,
         winningTeam,
-        events: events.map(e => ({ type: e.type, playerId: e.playerId })),
+        events: events.map(e => ({ type: e.type, playerId: e.playerId, minute: e.minute })),
       });
       
       endGameState();
@@ -61,6 +71,17 @@ export const GameRecorder = ({ players, onGameEnd }: GameRecorderProps) => {
   
   return (
     <div className="space-y-6">
+      {/* Game Timer */}
+      <Card className="bg-card border-border">
+        <CardContent className="p-4 text-center">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm">Match Time</span>
+          </div>
+          <p className="text-5xl font-bold text-primary">{currentMinute}'</p>
+        </CardContent>
+      </Card>
+      
       {/* Current Stats */}
       <div className="grid grid-cols-2 gap-4">
         <Card className="bg-card border-border">

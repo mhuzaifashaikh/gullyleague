@@ -2,6 +2,7 @@
 interface GameState {
   isActive: boolean;
   gameId: string | null;
+  startedAt: Date | null;
   teamAPlayers: string[];
   teamBPlayers: string[];
   teamAKeeper: string | null;
@@ -9,6 +10,7 @@ interface GameState {
   events: Array<{
     type: 'goal' | 'assist';
     playerId: string;
+    minute: number;
     timestamp: Date;
   }>;
 }
@@ -16,6 +18,7 @@ interface GameState {
 let gameState: GameState = {
   isActive: false,
   gameId: null,
+  startedAt: null,
   teamAPlayers: [],
   teamBPlayers: [],
   teamAKeeper: null,
@@ -24,6 +27,12 @@ let gameState: GameState = {
 };
 
 export const getGameState = () => gameState;
+
+export const getGameMinute = (): number => {
+  if (!gameState.startedAt) return 0;
+  const elapsed = Date.now() - gameState.startedAt.getTime();
+  return Math.floor(elapsed / 60000); // Convert ms to minutes
+};
 
 export const startGame = (
   gameId: string,
@@ -35,6 +44,7 @@ export const startGame = (
   gameState = {
     isActive: true,
     gameId,
+    startedAt: new Date(),
     teamAPlayers,
     teamBPlayers,
     teamAKeeper,
@@ -44,9 +54,11 @@ export const startGame = (
 };
 
 export const addEvent = (type: 'goal' | 'assist', playerId: string) => {
+  const minute = getGameMinute();
   gameState.events.push({
     type,
     playerId,
+    minute,
     timestamp: new Date(),
   });
 };
@@ -58,6 +70,7 @@ export const endGame = () => {
   gameState = {
     isActive: false,
     gameId: null,
+    startedAt: null,
     teamAPlayers: [],
     teamBPlayers: [],
     teamAKeeper: null,
