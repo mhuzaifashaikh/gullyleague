@@ -111,6 +111,8 @@ const Index = () => {
                       key={week.gameId}
                       weekLabel={week.weekLabel}
                       playedAt={week.playedAt}
+                      scoreA={week.scoreA}
+                      scoreB={week.scoreB}
                       topScorer={week.topScorer}
                       topAssister={week.topAssister}
                       topKeeper={week.topKeeper}

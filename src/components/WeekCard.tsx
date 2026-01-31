@@ -5,6 +5,8 @@ import { format } from 'date-fns';
 interface WeekCardProps {
   weekLabel: string;
   playedAt: Date;
+  scoreA: number;
+  scoreB: number;
   topScorer: { playerName: string; count: number } | null;
   topAssister: { playerName: string; count: number } | null;
   topKeeper: { playerName: string } | null;
@@ -14,6 +16,8 @@ interface WeekCardProps {
 export const WeekCard = ({ 
   weekLabel, 
   playedAt,
+  scoreA,
+  scoreB,
   topScorer, 
   topAssister, 
   topKeeper,
@@ -34,6 +38,20 @@ export const WeekCard = ({
             {format(playedAt, 'MMM d, yyyy')}
           </span>
         </CardTitle>
+        {/* Score Display */}
+        <div className="flex items-center justify-center gap-4 mt-2">
+          <div className={`text-2xl font-bold ${scoreA > scoreB ? 'text-primary' : 'text-muted-foreground'}`}>
+            {scoreA}
+          </div>
+          <span className="text-muted-foreground text-lg">-</span>
+          <div className={`text-2xl font-bold ${scoreB > scoreA ? 'text-primary' : 'text-muted-foreground'}`}>
+            {scoreB}
+          </div>
+        </div>
+        <div className="flex items-center justify-center gap-8 text-xs text-muted-foreground">
+          <span>Team A</span>
+          <span>Team B</span>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Top Scorer */}
