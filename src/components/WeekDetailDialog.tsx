@@ -101,7 +101,10 @@ export const WeekDetailDialog = ({
                             game.winningTeam === goal.team ? 'text-yellow-200' : 'text-foreground/80'
                           }`}
                         >
-                          <span>{goal.playerName}</span>
+                          <span>
+                            {goal.minute !== null && <span className="text-muted-foreground">{goal.minute}' </span>}
+                            {goal.playerName}
+                          </span>
                           <Badge variant="outline" className="text-xs px-1.5 py-0">
                             {goal.team}
                           </Badge>
@@ -128,7 +131,10 @@ export const WeekDetailDialog = ({
                             game.winningTeam === assist.team ? 'text-yellow-200' : 'text-foreground/80'
                           }`}
                         >
-                          <span>{assist.playerName}</span>
+                          <span>
+                            {assist.minute !== null && <span className="text-muted-foreground">{assist.minute}' </span>}
+                            {assist.playerName}
+                          </span>
                           <Badge variant="outline" className="text-xs px-1.5 py-0">
                             {assist.team}
                           </Badge>
