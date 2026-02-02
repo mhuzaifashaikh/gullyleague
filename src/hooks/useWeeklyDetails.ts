@@ -7,8 +7,8 @@ interface GameDetail {
   winningTeam: string | null;
   teamAPlayers: { id: string; name: string; isKeeper: boolean }[];
   teamBPlayers: { id: string; name: string; isKeeper: boolean }[];
-  goals: { playerId: string; playerName: string; team: string }[];
-  assists: { playerId: string; playerName: string; team: string }[];
+  goals: { playerId: string; playerName: string; team: string; minute: number | null }[];
+  assists: { playerId: string; playerName: string; team: string; minute: number | null }[];
 }
 
 export const useWeeklyDetails = (gameId: string | null) => {
@@ -46,8 +46,9 @@ export const useWeeklyDetails = (gameId: string | null) => {
       // Get events
       const { data: events, error: eventsError } = await supabase
         .from('game_events')
-        .select('player_id, event_type')
-        .eq('game_id', gameId);
+        .select('player_id, event_type, minute')
+        .eq('game_id', gameId)
+        .order('minute', { ascending: true });
 
       if (eventsError) throw eventsError;
 
@@ -76,6 +77,7 @@ export const useWeeklyDetails = (gameId: string | null) => {
           playerId: e.player_id,
           playerName: playerMap.get(e.player_id) || 'Unknown',
           team: playerTeamMap.get(e.player_id) || '',
+          minute: e.minute,
         }));
 
       const assists = (events || [])
@@ -84,6 +86,7 @@ export const useWeeklyDetails = (gameId: string | null) => {
           playerId: e.player_id,
           playerName: playerMap.get(e.player_id) || 'Unknown',
           team: playerTeamMap.get(e.player_id) || '',
+          minute: e.minute,
         }));
 
       return {
