@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGameHistory, useUpdateGameWinner, useAddGameEvent, useDeleteGameEvent, useDeleteGame } from '@/hooks/useGameHistory';
 import { usePlayers } from '@/hooks/usePlayers';
 import { PlayerSelector } from './PlayerSelector';
+import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { Edit2, Trophy, Goal, Target, Trash2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
 
   const [editingGame, setEditingGame] = useState<string | null>(null);
   const [addingEvent, setAddingEvent] = useState<{ gameId: string; type: 'goal' | 'assist' } | null>(null);
+  const [eventMinute, setEventMinute] = useState<string>('');
   const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
 
   const selectedGame = games?.find(g => g.id === editingGame);
@@ -43,14 +45,18 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
 
   const handleAddEvent = async (playerId: string) => {
     if (!addingEvent) return;
+    const minute = eventMinute ? parseInt(eventMinute, 10) : undefined;
     try {
       await addEvent.mutateAsync({
         gameId: addingEvent.gameId,
         playerId,
         eventType: addingEvent.type,
+        minute,
       });
-      toast.success(`${addingEvent.type === 'goal' ? 'Goal' : 'Assist'} added!`);
+      const minuteStr = minute !== undefined ? ` at ${minute}'` : '';
+      toast.success(`${addingEvent.type === 'goal' ? 'Goal' : 'Assist'} added${minuteStr}!`);
       setAddingEvent(null);
+      setEventMinute('');
     } catch {
       toast.error('Failed to add event');
     }
@@ -196,7 +202,12 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
                           ) : (
                             <Target className="h-4 w-4 text-secondary" />
                           )}
-                          <span className="text-sm">{event.playerName}</span>
+                          <span className="text-sm">
+                            {event.minute !== null && (
+                              <span className="text-muted-foreground">{event.minute}' </span>
+                            )}
+                            {event.playerName}
+                          </span>
                         </div>
                         <Button
                           size="sm"
@@ -253,13 +264,44 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
       </Dialog>
 
       {/* Add Event Player Selector */}
-      <PlayerSelector
-        open={!!addingEvent}
-        onOpenChange={(open) => !open && setAddingEvent(null)}
-        players={gamePlayers.map(p => ({ id: p.id, name: p.name, photo_url: null, created_at: '' }))}
-        onSelect={handleAddEvent}
-        title={addingEvent?.type === 'goal' ? '⚽ Who scored?' : '👟 Who assisted?'}
-      />
+      <Dialog open={!!addingEvent} onOpenChange={(open) => { if (!open) { setAddingEvent(null); setEventMinute(''); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{addingEvent?.type === 'goal' ? '⚽ Add Goal' : '👟 Add Assist'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Minute (optional)</label>
+              <Input
+                type="number"
+                min="0"
+                max="120"
+                placeholder="e.g. 15"
+                value={eventMinute}
+                onChange={(e) => setEventMinute(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Player</label>
+              <ScrollArea className="h-[200px]">
+                <div className="space-y-2 pr-2">
+                  {gamePlayers.map(player => (
+                    <Button
+                      key={player.id}
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => handleAddEvent(player.id)}
+                      disabled={addEvent.isPending}
+                    >
+                      {player.name}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Game Confirmation */}
       <AlertDialog open={!!deletingGameId} onOpenChange={(open) => !open && setDeletingGameId(null)}>
