@@ -9,7 +9,7 @@ interface GameWithDetails {
   team_b_keeper_id: string | null;
   teamAPlayers: { id: string; name: string }[];
   teamBPlayers: { id: string; name: string }[];
-  events: { id: string; player_id: string; event_type: string; playerName: string }[];
+  events: { id: string; player_id: string; event_type: string; playerName: string; minute: number | null }[];
 }
 
 export const useGameHistory = (seasonId: string | null) => {
@@ -42,8 +42,9 @@ export const useGameHistory = (seasonId: string | null) => {
       // Get game events
       const { data: events, error: eventsError } = await supabase
         .from('game_events')
-        .select('id, game_id, player_id, event_type')
-        .in('game_id', gameIds);
+        .select('id, game_id, player_id, event_type, minute')
+        .in('game_id', gameIds)
+        .order('minute', { ascending: true, nullsFirst: false });
 
       if (eventsError) throw eventsError;
 
@@ -67,7 +68,7 @@ export const useGameHistory = (seasonId: string | null) => {
           .map(gp => ({ id: gp.player_id, name: playerMap.get(gp.player_id) || 'Unknown' })),
         events: (events || [])
           .filter(e => e.game_id === game.id)
-          .map(e => ({ ...e, playerName: playerMap.get(e.player_id) || 'Unknown' })),
+          .map(e => ({ ...e, playerName: playerMap.get(e.player_id) || 'Unknown', minute: e.minute })),
       }));
     },
     enabled: !!seasonId,
@@ -99,10 +100,10 @@ export const useAddGameEvent = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ gameId, playerId, eventType }: { gameId: string; playerId: string; eventType: 'goal' | 'assist' }) => {
+    mutationFn: async ({ gameId, playerId, eventType, minute }: { gameId: string; playerId: string; eventType: 'goal' | 'assist'; minute?: number }) => {
       const { error } = await supabase
         .from('game_events')
-        .insert({ game_id: gameId, player_id: playerId, event_type: eventType });
+        .insert({ game_id: gameId, player_id: playerId, event_type: eventType, minute: minute ?? null });
 
       if (error) throw error;
     },
