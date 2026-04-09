@@ -8,6 +8,7 @@ import { GullyDorDialog } from '@/components/GullyDorDialog';
 import { WeekDetailDialog } from '@/components/WeekDetailDialog';
 import { StandingsSection } from '@/components/StandingsSection';
 import { WeekCard } from '@/components/WeekCard';
+import { PlayerProfileDialog } from '@/components/PlayerProfileDialog';
 import { useAdminMode } from '@/hooks/useAdminMode';
 import { useActiveSeason } from '@/hooks/useSeasons';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
@@ -19,11 +20,14 @@ const Index = () => {
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [gullyDorOpen, setGullyDorOpen] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<{ gameId: string; label: string } | null>(null);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const { isAdmin, verifyPin } = useAdminMode();
   const { data: season } = useActiveSeason();
   const { data: seasonStats, isLoading: seasonLoading } = useLeaderboard(season?.id || null, 'season');
   const { data: weeklyBreakdown, isLoading: weeklyLoading } = useWeeklyBreakdown(season?.id || null);
   const { data: gullyDorEntries, isLoading: gullyDorLoading } = useGullyDor(season?.id || null);
+
+  const handlePlayerClick = (playerId: string) => setSelectedPlayerId(playerId);
 
   return (
     <div className="min-h-screen bg-background gradient-dark">
@@ -66,7 +70,6 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Season Stats - Top 7 scorers, assists, and keepers */}
           <TabsContent value="season" className="mt-0">
             {seasonLoading ? (
               <p className="text-center text-muted-foreground py-8">Loading...</p>
@@ -79,6 +82,7 @@ const Index = () => {
                     entries={seasonStats?.topScorers || []}
                     unit="goals"
                     defaultShowCount={7}
+                    onPlayerClick={handlePlayerClick}
                   />
                   <StandingsSection
                     title="Top Assisters"
@@ -86,6 +90,7 @@ const Index = () => {
                     entries={seasonStats?.topAssisters || []}
                     unit="assists"
                     defaultShowCount={7}
+                    onPlayerClick={handlePlayerClick}
                   />
                 </div>
                 <StandingsSection
@@ -94,12 +99,12 @@ const Index = () => {
                   entries={seasonStats?.topKeepers || []}
                   unit="wins"
                   defaultShowCount={7}
+                  onPlayerClick={handlePlayerClick}
                 />
               </div>
             )}
           </TabsContent>
 
-          {/* Weekly Breakdown - Week cards */}
           <TabsContent value="week" className="mt-0">
             {weeklyLoading ? (
               <p className="text-center text-muted-foreground py-8">Loading...</p>
@@ -163,6 +168,7 @@ const Index = () => {
         onOpenChange={setGullyDorOpen}
         entries={gullyDorEntries || []}
         isLoading={gullyDorLoading}
+        onPlayerClick={handlePlayerClick}
       />
 
       <WeekDetailDialog
@@ -170,6 +176,14 @@ const Index = () => {
         onOpenChange={(open) => !open && setSelectedWeek(null)}
         gameId={selectedWeek?.gameId || null}
         weekLabel={selectedWeek?.label || ''}
+        onPlayerClick={handlePlayerClick}
+      />
+
+      <PlayerProfileDialog
+        open={!!selectedPlayerId}
+        onOpenChange={(open) => !open && setSelectedPlayerId(null)}
+        playerId={selectedPlayerId}
+        seasonId={season?.id || null}
       />
     </div>
   );

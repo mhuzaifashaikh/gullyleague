@@ -10,6 +10,7 @@ interface WeekDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   gameId: string | null;
   weekLabel: string;
+  onPlayerClick?: (playerId: string) => void;
 }
 
 export const WeekDetailDialog = ({
@@ -17,8 +18,18 @@ export const WeekDetailDialog = ({
   onOpenChange,
   gameId,
   weekLabel,
+  onPlayerClick,
 }: WeekDetailDialogProps) => {
   const { data: game, isLoading } = useWeeklyDetails(gameId);
+
+  const PlayerName = ({ id, name, className }: { id: string; name: string; className?: string }) => (
+    <button
+      className={`hover:text-primary underline-offset-2 hover:underline transition-colors text-left ${className || ''}`}
+      onClick={() => onPlayerClick?.(id)}
+    >
+      {name}
+    </button>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -56,7 +67,7 @@ export const WeekDetailDialog = ({
                         className={`text-sm flex items-center gap-1 ${game.winningTeam === 'A' ? 'text-yellow-200' : 'text-foreground/80'}`}
                       >
                         {player.isKeeper && <Shield className="h-3 w-3 text-green-400" />}
-                        <span>{player.name}</span>
+                        <PlayerName id={player.id} name={player.name} />
                       </div>
                     ))}
                   </div>
@@ -77,7 +88,7 @@ export const WeekDetailDialog = ({
                         className={`text-sm flex items-center gap-1 ${game.winningTeam === 'B' ? 'text-yellow-200' : 'text-foreground/80'}`}
                       >
                         {player.isKeeper && <Shield className="h-3 w-3 text-green-400" />}
-                        <span>{player.name}</span>
+                        <PlayerName id={player.id} name={player.name} />
                       </div>
                     ))}
                   </div>
@@ -103,7 +114,7 @@ export const WeekDetailDialog = ({
                         >
                           <span>
                             {goal.minute !== null && <span className="text-muted-foreground">{goal.minute}' </span>}
-                            {goal.playerName}
+                            <PlayerName id={goal.playerId} name={goal.playerName} />
                           </span>
                           <Badge variant="outline" className="text-xs px-1.5 py-0">
                             {goal.team}
@@ -133,7 +144,7 @@ export const WeekDetailDialog = ({
                         >
                           <span>
                             {assist.minute !== null && <span className="text-muted-foreground">{assist.minute}' </span>}
-                            {assist.playerName}
+                            <PlayerName id={assist.playerId} name={assist.playerName} />
                           </span>
                           <Badge variant="outline" className="text-xs px-1.5 py-0">
                             {assist.team}

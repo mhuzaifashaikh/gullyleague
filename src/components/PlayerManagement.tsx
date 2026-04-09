@@ -1,16 +1,21 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { usePlayers, useAddPlayer, useDeletePlayer, Player } from '@/hooks/usePlayers';
-import { UserPlus, Trash2, Users } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { UserPlus, Trash2, Users, Camera } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const PlayerManagement = () => {
   const [newPlayerName, setNewPlayerName] = useState('');
   const { data: players, isLoading } = usePlayers();
   const addPlayer = useAddPlayer();
   const deletePlayer = useDeletePlayer();
+  const queryClient = useQueryClient();
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   
   const handleAddPlayer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +41,39 @@ export const PlayerManagement = () => {
     } catch (error) {
       toast.error('Failed to remove player');
     }
+  };
+
+  const handlePhotoUpload = async (player: Player, file: File) => {
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${player.id}.${ext}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('player-photos')
+        .upload(path, file, { upsert: true });
+      
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('player-photos')
+        .getPublicUrl(path);
+
+      const { error: updateError } = await supabase
+        .from('players')
+        .update({ photo_url: publicUrl })
+        .eq('id', player.id);
+      
+      if (updateError) throw updateError;
+
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      toast.success(`Photo updated for ${player.name}`);
+    } catch (error) {
+      toast.error('Failed to upload photo');
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
   
   return (
@@ -70,16 +108,47 @@ export const PlayerManagement = () => {
                 key={player.id}
                 className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
               >
-                <span className="font-medium">{player.name}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => handleDeletePlayer(player)}
-                  disabled={deletePlayer.isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    {player.photo_url ? (
+                      <AvatarImage src={player.photo_url} alt={player.name} />
+                    ) : null}
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
+                      {getInitials(player.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">{player.name}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    ref={(el) => { fileInputRefs.current[player.id] = el; }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handlePhotoUpload(player, file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                    onClick={() => fileInputRefs.current[player.id]?.click()}
+                  >
+                    <Camera className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleDeletePlayer(player)}
+                    disabled={deletePlayer.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
