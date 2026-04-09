@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RankingList } from '@/components/RankingList';
+import { PlayerProfileDialog } from '@/components/PlayerProfileDialog';
 import { useActiveSeason } from '@/hooks/useSeasons';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { ArrowLeft, Calendar, Clock } from 'lucide-react';
@@ -10,10 +12,12 @@ const Leaderboards = () => {
   const { data: season } = useActiveSeason();
   const { data: seasonStats, isLoading: seasonLoading } = useLeaderboard(season?.id || null, 'season');
   const { data: weekStats, isLoading: weekLoading } = useLeaderboard(season?.id || null, 'week');
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+
+  const handlePlayerClick = (playerId: string) => setSelectedPlayerId(playerId);
 
   return (
     <div className="min-h-screen bg-background gradient-dark">
-      {/* Header */}
       <header className="bg-card/50 border-b border-border/50 p-4">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link to="/">
@@ -28,7 +32,6 @@ const Leaderboards = () => {
         </div>
       </header>
 
-      {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-6">
         <Tabs defaultValue="season" className="w-full">
           <TabsList className="w-full mb-6 bg-muted/50 p-1 border border-border/50">
@@ -53,24 +56,9 @@ const Leaderboards = () => {
               <p className="text-center text-muted-foreground py-8">Loading...</p>
             ) : (
               <>
-                <RankingList
-                  title="Top Scorers"
-                  icon="trophy"
-                  entries={seasonStats?.topScorers || []}
-                  unit="goals"
-                />
-                <RankingList
-                  title="Top Assisters"
-                  icon="target"
-                  entries={seasonStats?.topAssisters || []}
-                  unit="assists"
-                />
-                <RankingList
-                  title="Top Goalkeeper Wins"
-                  icon="shield"
-                  entries={seasonStats?.topKeepers || []}
-                  unit="wins"
-                />
+                <RankingList title="Top Scorers" icon="trophy" entries={seasonStats?.topScorers || []} unit="goals" onPlayerClick={handlePlayerClick} />
+                <RankingList title="Top Assisters" icon="target" entries={seasonStats?.topAssisters || []} unit="assists" onPlayerClick={handlePlayerClick} />
+                <RankingList title="Top Goalkeeper Wins" icon="shield" entries={seasonStats?.topKeepers || []} unit="wins" onPlayerClick={handlePlayerClick} />
               </>
             )}
           </TabsContent>
@@ -80,29 +68,21 @@ const Leaderboards = () => {
               <p className="text-center text-muted-foreground py-8">Loading...</p>
             ) : (
               <>
-                <RankingList
-                  title="Top Scorers"
-                  icon="trophy"
-                  entries={weekStats?.topScorers || []}
-                  unit="goals"
-                />
-                <RankingList
-                  title="Top Assisters"
-                  icon="target"
-                  entries={weekStats?.topAssisters || []}
-                  unit="assists"
-                />
-                <RankingList
-                  title="Top Goalkeeper Wins"
-                  icon="shield"
-                  entries={weekStats?.topKeepers || []}
-                  unit="wins"
-                />
+                <RankingList title="Top Scorers" icon="trophy" entries={weekStats?.topScorers || []} unit="goals" onPlayerClick={handlePlayerClick} />
+                <RankingList title="Top Assisters" icon="target" entries={weekStats?.topAssisters || []} unit="assists" onPlayerClick={handlePlayerClick} />
+                <RankingList title="Top Goalkeeper Wins" icon="shield" entries={weekStats?.topKeepers || []} unit="wins" onPlayerClick={handlePlayerClick} />
               </>
             )}
           </TabsContent>
         </Tabs>
       </main>
+
+      <PlayerProfileDialog
+        open={!!selectedPlayerId}
+        onOpenChange={(open) => !open && setSelectedPlayerId(null)}
+        playerId={selectedPlayerId}
+        seasonId={season?.id || null}
+      />
     </div>
   );
 };
