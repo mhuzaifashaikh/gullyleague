@@ -15,6 +15,7 @@ interface StandingsSectionProps {
   entries: RankingEntry[];
   unit: string;
   defaultShowCount?: number;
+  onPlayerClick?: (playerId: string) => void;
 }
 
 const iconMap = {
@@ -28,7 +29,8 @@ export const StandingsSection = ({
   icon, 
   entries, 
   unit, 
-  defaultShowCount = 7 
+  defaultShowCount = 7,
+  onPlayerClick,
 }: StandingsSectionProps) => {
   const [expanded, setExpanded] = useState(false);
   const Icon = iconMap[icon];
@@ -80,7 +82,12 @@ export const StandingsSection = ({
                   >
                     {index + 1}
                   </span>
-                  <span className="font-medium text-sm text-foreground">{entry.playerName}</span>
+                  <button
+                    className="font-medium text-sm text-foreground hover:text-primary underline-offset-2 hover:underline transition-colors text-left"
+                    onClick={() => onPlayerClick?.(entry.playerId)}
+                  >
+                    {entry.playerName}
+                  </button>
                 </div>
                 <span className={`text-sm font-bold ${index === 0 ? 'neon-text-gold' : 'text-muted-foreground'}`}>
                   {entry.count} {unit}

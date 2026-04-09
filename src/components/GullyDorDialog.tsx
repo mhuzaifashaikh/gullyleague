@@ -16,9 +16,10 @@ interface GullyDorDialogProps {
   onOpenChange: (open: boolean) => void;
   entries: GullyDorEntry[];
   isLoading: boolean;
+  onPlayerClick?: (playerId: string) => void;
 }
 
-export const GullyDorDialog = ({ open, onOpenChange, entries, isLoading }: GullyDorDialogProps) => {
+export const GullyDorDialog = ({ open, onOpenChange, entries, isLoading, onPlayerClick }: GullyDorDialogProps) => {
   const getRankBadge = (index: number) => {
     if (index === 0) return 'bg-gradient-to-br from-yellow-400 to-amber-600 text-black shadow-glow-gold';
     if (index === 1) return 'bg-gradient-to-br from-gray-300 to-gray-500 text-black';
@@ -59,7 +60,12 @@ export const GullyDorDialog = ({ open, onOpenChange, entries, isLoading }: Gully
                     {index + 1}
                   </span>
                   <div>
-                    <span className="font-semibold text-foreground">{entry.playerName}</span>
+                    <button
+                      className="font-semibold text-foreground hover:text-primary underline-offset-2 hover:underline transition-colors text-left"
+                      onClick={() => onPlayerClick?.(entry.playerId)}
+                    >
+                      {entry.playerName}
+                    </button>
                     <div className="flex gap-2 text-xs text-muted-foreground">
                       <span>{entry.wins + entry.keeperWins}W</span>
                       <span>{entry.goals}G</span>

@@ -12,6 +12,7 @@ interface RankingListProps {
   icon: 'trophy' | 'target' | 'shield';
   entries: RankingEntry[];
   unit: string;
+  onPlayerClick?: (playerId: string) => void;
 }
 
 const iconMap = {
@@ -26,7 +27,7 @@ const colorMap = {
   shield: 'text-emerald-400',
 };
 
-export const RankingList = ({ title, icon, entries, unit }: RankingListProps) => {
+export const RankingList = ({ title, icon, entries, unit, onPlayerClick }: RankingListProps) => {
   const Icon = iconMap[icon];
   const color = colorMap[icon];
 
@@ -63,7 +64,12 @@ export const RankingList = ({ title, icon, entries, unit }: RankingListProps) =>
                 >
                   {index + 1}
                 </span>
-                <span className="font-medium text-foreground">{entry.playerName}</span>
+                <button
+                  className="font-medium text-foreground hover:text-primary underline-offset-2 hover:underline transition-colors text-left"
+                  onClick={() => onPlayerClick?.(entry.playerId)}
+                >
+                  {entry.playerName}
+                </button>
               </div>
               <span className={`font-bold ${index === 0 ? color : 'text-muted-foreground'}`}>
                 {entry.count} {unit}
