@@ -2,6 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { Users, Trophy, Target, Star } from 'lucide-react';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 interface PlayerProfileDialogProps {
   open: boolean;
@@ -9,6 +11,13 @@ interface PlayerProfileDialogProps {
   playerId: string | null;
   seasonId: string | null;
 }
+
+const chartConfig = {
+  ga: {
+    label: "G+A",
+    color: "hsl(var(--primary))",
+  },
+};
 
 export const PlayerProfileDialog = ({ open, onOpenChange, playerId, seasonId }: PlayerProfileDialogProps) => {
   const { data: profile, isLoading } = usePlayerProfile(playerId, seasonId);
@@ -70,6 +79,42 @@ export const PlayerProfileDialog = ({ open, onOpenChange, playerId, seasonId }: 
                     {profile.bestGame.weekLabel} ({profile.bestGame.goalsAndAssists} G+A)
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* G+A Trend Chart */}
+            {profile.trend.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground">G+A Trend</p>
+                <ChartContainer config={chartConfig} className="aspect-[2/1] w-full">
+                  <LineChart data={profile.trend} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+                    <XAxis
+                      dataKey="game"
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={11}
+                      tickFormatter={(v) => `${v}`}
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={11}
+                      allowDecimals={false}
+                    />
+                    <ChartTooltip
+                      content={<ChartTooltipContent labelFormatter={(v) => `Game ${v}`} />}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="ga"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      dot={{ r: 3, fill: "hsl(var(--primary))" }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ChartContainer>
               </div>
             )}
           </div>
