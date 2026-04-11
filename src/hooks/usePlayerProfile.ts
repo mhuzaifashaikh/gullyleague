@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+interface GameTrendPoint {
+  game: number;
+  ga: number;
+}
+
 interface PlayerProfile {
   id: string;
   name: string;
@@ -9,6 +14,7 @@ interface PlayerProfile {
   goals: number;
   assists: number;
   bestGame: { weekLabel: string; goalsAndAssists: number } | null;
+  trend: GameTrendPoint[];
 }
 
 export const usePlayerProfile = (playerId: string | null, seasonId: string | null) => {
@@ -52,7 +58,7 @@ export const usePlayerProfile = (playerId: string | null, seasonId: string | nul
       let goals = 0;
       let assists = 0;
       let bestGame: PlayerProfile['bestGame'] = null;
-
+      let trend: GameTrendPoint[] = [];
       if (seasonGameIds.length > 0) {
         const { data: events, error: evError } = await supabase
           .from('game_events')
@@ -81,15 +87,23 @@ export const usePlayerProfile = (playerId: string | null, seasonId: string | nul
           }
         }
 
-        if (bestGameId) {
-          // Determine week number: order season games by played_at
-          const { data: orderedGames } = await supabase
-            .from('games')
-            .select('id')
-            .eq('season_id', seasonId!)
-            .eq('is_active', false)
-            .order('played_at', { ascending: true });
+        // Get ordered season games for week labels and trend
+        const { data: orderedGames } = await supabase
+          .from('games')
+          .select('id')
+          .eq('season_id', seasonId!)
+          .eq('is_active', false)
+          .order('played_at', { ascending: true });
 
+        // Build trend: G+A per game in chronological order
+        trend = (orderedGames || [])
+          .filter(g => seasonGameIds.includes(g.id))
+          .map((g, i) => ({
+            game: i + 1,
+            ga: perGame[g.id] || 0,
+          }));
+
+        if (bestGameId) {
           const weekIndex = (orderedGames || []).findIndex(g => g.id === bestGameId);
           const weekLabel = weekIndex >= 0 ? `Week ${weekIndex + 1}` : 'N/A';
           bestGame = { weekLabel, goalsAndAssists: bestCount };
@@ -104,6 +118,7 @@ export const usePlayerProfile = (playerId: string | null, seasonId: string | nul
         goals,
         assists,
         bestGame,
+        trend,
       };
     },
   });
