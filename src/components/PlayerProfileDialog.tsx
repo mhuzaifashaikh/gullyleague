@@ -36,17 +36,37 @@ export const PlayerProfileDialog = ({ open, onOpenChange, playerId, seasonId }: 
         {isLoading ? (
           <p className="text-center text-muted-foreground py-8">Loading...</p>
         ) : profile ? (
-          <div className="space-y-5">
+          <div className="space-y-5 relative">
+            {/* Hero photo with fade */}
+            {profile.photoUrl && (
+              <div className="absolute -top-12 left-0 right-0 h-48 z-0 overflow-hidden rounded-t-lg">
+                <img
+                  src={profile.photoUrl}
+                  alt={profile.name}
+                  className="w-full h-full object-cover object-top"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: `
+                      linear-gradient(to bottom, transparent 20%, hsl(var(--card)) 100%),
+                      linear-gradient(to top, transparent 60%, hsl(var(--card)) 100%),
+                      linear-gradient(to right, hsl(var(--card)) 0%, transparent 20%, transparent 80%, hsl(var(--card)) 100%)
+                    `,
+                  }}
+                />
+              </div>
+            )}
+
             {/* Avatar + Name */}
-            <div className="flex flex-col items-center gap-3">
-              <Avatar className="h-20 w-20 border-2 border-primary/30">
-                {profile.photoUrl ? (
-                  <AvatarImage src={profile.photoUrl} alt={profile.name} />
-                ) : null}
-                <AvatarFallback className="bg-primary/20 text-primary text-xl font-bold">
-                  {getInitials(profile.name)}
-                </AvatarFallback>
-              </Avatar>
+            <div className={`flex flex-col items-center gap-3 relative z-10 ${profile.photoUrl ? 'pt-28' : ''}`}>
+              {!profile.photoUrl && (
+                <Avatar className="h-20 w-20">
+                  <AvatarFallback className="bg-primary/20 text-primary text-xl font-bold">
+                    {getInitials(profile.name)}
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <h2 className="text-xl font-black text-foreground">{profile.name}</h2>
             </div>
 
