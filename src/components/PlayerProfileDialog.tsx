@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
-import { Users, Trophy, Target, Star } from 'lucide-react';
+import { Users, Trophy, Target, Star, Volleyball } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
@@ -58,7 +58,7 @@ export const PlayerProfileDialog = ({ open, onOpenChange, playerId, seasonId }: 
                 <p className="text-xs text-muted-foreground">Games</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-muted/40">
-                <Trophy className="h-4 w-4 mx-auto mb-1 text-secondary" />
+                <Volleyball className="h-4 w-4 mx-auto mb-1 text-secondary" />
                 <p className="text-2xl font-black text-foreground">{profile.goals}</p>
                 <p className="text-xs text-muted-foreground">Goals</p>
               </div>
