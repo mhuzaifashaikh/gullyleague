@@ -56,7 +56,7 @@ export const WeekDetailDialog = ({
                         className={`text-sm flex items-center gap-1 ${game.winningTeam === 'A' ? 'text-yellow-200' : 'text-foreground/80'}`}
                       >
                         {player.isKeeper && <Shield className="h-3 w-3 text-green-400" />}
-                        <PlayerName id={player.id} name={player.name} />
+                        <span>{player.name}</span>
                       </div>
                     ))}
                   </div>
@@ -77,7 +77,7 @@ export const WeekDetailDialog = ({
                         className={`text-sm flex items-center gap-1 ${game.winningTeam === 'B' ? 'text-yellow-200' : 'text-foreground/80'}`}
                       >
                         {player.isKeeper && <Shield className="h-3 w-3 text-green-400" />}
-                        <PlayerName id={player.id} name={player.name} />
+                        <span>{player.name}</span>
                       </div>
                     ))}
                   </div>
@@ -103,7 +103,7 @@ export const WeekDetailDialog = ({
                         >
                           <span>
                             {goal.minute !== null && <span className="text-muted-foreground">{goal.minute}' </span>}
-                            <PlayerName id={goal.playerId} name={goal.playerName} />
+                            <span>{goal.playerName}</span>
                           </span>
                           <Badge variant="outline" className="text-xs px-1.5 py-0">
                             {goal.team}
@@ -133,7 +133,7 @@ export const WeekDetailDialog = ({
                         >
                           <span>
                             {assist.minute !== null && <span className="text-muted-foreground">{assist.minute}' </span>}
-                            <PlayerName id={assist.playerId} name={assist.playerName} />
+                            <span>{assist.playerName}</span>
                           </span>
                           <Badge variant="outline" className="text-xs px-1.5 py-0">
                             {assist.team}
