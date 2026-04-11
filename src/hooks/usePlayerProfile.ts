@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+interface GameTrendPoint {
+  game: number;
+  ga: number;
+}
+
 interface PlayerProfile {
   id: string;
   name: string;
@@ -9,6 +14,7 @@ interface PlayerProfile {
   goals: number;
   assists: number;
   bestGame: { weekLabel: string; goalsAndAssists: number } | null;
+  trend: GameTrendPoint[];
 }
 
 export const usePlayerProfile = (playerId: string | null, seasonId: string | null) => {
