@@ -10,7 +10,6 @@ interface WeekDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   gameId: string | null;
   weekLabel: string;
-  onPlayerClick?: (playerId: string) => void;
 }
 
 export const WeekDetailDialog = ({
@@ -18,18 +17,8 @@ export const WeekDetailDialog = ({
   onOpenChange,
   gameId,
   weekLabel,
-  onPlayerClick,
 }: WeekDetailDialogProps) => {
   const { data: game, isLoading } = useWeeklyDetails(gameId);
-
-  const PlayerName = ({ id, name, className }: { id: string; name: string; className?: string }) => (
-    <button
-      className={`hover:text-primary underline-offset-2 hover:underline transition-colors text-left ${className || ''}`}
-      onClick={() => onPlayerClick?.(id)}
-    >
-      {name}
-    </button>
-  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
