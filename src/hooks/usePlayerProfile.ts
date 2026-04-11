@@ -87,26 +87,26 @@ export const usePlayerProfile = (playerId: string | null, seasonId: string | nul
           }
         }
 
-        if (bestGameId) {
-          // Determine week number: order season games by played_at
-          const { data: orderedGames } = await supabase
-            .from('games')
-            .select('id')
-            .eq('season_id', seasonId!)
-            .eq('is_active', false)
-            .order('played_at', { ascending: true });
+        // Get ordered season games for week labels and trend
+        const { data: orderedGames } = await supabase
+          .from('games')
+          .select('id')
+          .eq('season_id', seasonId!)
+          .eq('is_active', false)
+          .order('played_at', { ascending: true });
 
+        // Build trend: G+A per game in chronological order
+        trend = (orderedGames || [])
+          .filter(g => seasonGameIds.includes(g.id))
+          .map((g, i) => ({
+            game: i + 1,
+            ga: perGame[g.id] || 0,
+          }));
+
+        if (bestGameId) {
           const weekIndex = (orderedGames || []).findIndex(g => g.id === bestGameId);
           const weekLabel = weekIndex >= 0 ? `Week ${weekIndex + 1}` : 'N/A';
           bestGame = { weekLabel, goalsAndAssists: bestCount };
-
-          // Build trend: G+A per game in chronological order
-          trend = (orderedGames || [])
-            .filter(g => seasonGameIds.includes(g.id))
-            .map((g, i) => ({
-              game: i + 1,
-              ga: perGame[g.id] || 0,
-            }));
         }
       }
 
