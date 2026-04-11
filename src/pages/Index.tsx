@@ -176,7 +176,6 @@ const Index = () => {
         onOpenChange={(open) => !open && setSelectedWeek(null)}
         gameId={selectedWeek?.gameId || null}
         weekLabel={selectedWeek?.label || ''}
-        onPlayerClick={handlePlayerClick}
       />
 
       <PlayerProfileDialog

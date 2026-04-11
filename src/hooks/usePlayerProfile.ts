@@ -33,13 +33,14 @@ export const usePlayerProfile = (playerId: string | null, seasonId: string | nul
 
       const allGameIds = gamePlayerRows.map(gp => gp.game_id);
 
-      // Filter to season games
+      // Filter to completed season games only
       let seasonGameIds: string[] = [];
       if (allGameIds.length > 0) {
         const { data: seasonGames, error: sgError } = await supabase
           .from('games')
           .select('id')
           .eq('season_id', seasonId!)
+          .eq('is_active', false)
           .in('id', allGameIds);
         if (sgError) throw sgError;
         seasonGameIds = seasonGames.map(g => g.id);
