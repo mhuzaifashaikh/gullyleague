@@ -61,7 +61,7 @@ export const PlayerProfileDialog = ({ open, onOpenChange, playerId, seasonId }: 
             {/* Avatar + Name */}
             <div className={`flex flex-col items-center gap-3 relative z-10 ${profile.photoUrl ? 'pt-28' : ''}`}>
               {!profile.photoUrl && (
-                <Avatar className="h-20 w-20">
+                <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-primary/20 text-primary text-xl font-bold">
                     {getInitials(profile.name)}
                   </AvatarFallback>
