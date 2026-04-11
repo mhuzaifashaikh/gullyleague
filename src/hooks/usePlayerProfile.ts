@@ -58,7 +58,7 @@ export const usePlayerProfile = (playerId: string | null, seasonId: string | nul
       let goals = 0;
       let assists = 0;
       let bestGame: PlayerProfile['bestGame'] = null;
-
+      let trend: GameTrendPoint[] = [];
       if (seasonGameIds.length > 0) {
         const { data: events, error: evError } = await supabase
           .from('game_events')
@@ -99,6 +99,14 @@ export const usePlayerProfile = (playerId: string | null, seasonId: string | nul
           const weekIndex = (orderedGames || []).findIndex(g => g.id === bestGameId);
           const weekLabel = weekIndex >= 0 ? `Week ${weekIndex + 1}` : 'N/A';
           bestGame = { weekLabel, goalsAndAssists: bestCount };
+
+          // Build trend: G+A per game in chronological order
+          trend = (orderedGames || [])
+            .filter(g => seasonGameIds.includes(g.id))
+            .map((g, i) => ({
+              game: i + 1,
+              ga: perGame[g.id] || 0,
+            }));
         }
       }
 
@@ -110,6 +118,7 @@ export const usePlayerProfile = (playerId: string | null, seasonId: string | nul
         goals,
         assists,
         bestGame,
+        trend,
       };
     },
   });
