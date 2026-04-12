@@ -6,8 +6,8 @@
 
 @layer base {
   :root {
-    /* Deep dark base */
-    --background: 220 30% 6%;
+    /* Deep dark base - black/red gradient */
+    --background: 0 0% 4%;
     --foreground: 210 20% 95%;
 
     /* Cards with subtle dark contrast */
@@ -82,7 +82,7 @@
   }
   
   .gradient-dark {
-    background: linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(220 30% 6%) 100%);
+    background: linear-gradient(180deg, hsl(0 0% 6%) 0%, hsl(0 60% 8%) 50%, hsl(0 0% 4%) 100%);
   }
   
   .text-gradient-gold {
