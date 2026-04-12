@@ -38,6 +38,8 @@ export const PinDialog = ({ open, onOpenChange, onVerify }: PinDialogProps) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             type="password"
+            inputMode="numeric"
+            pattern="[0-9]*"
             placeholder="Enter PIN"
             value={pin}
             onChange={(e) => {
