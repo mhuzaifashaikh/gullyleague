@@ -45,12 +45,20 @@ export const PlayerManagement = () => {
 
   const handlePhotoUpload = async (player: Player, file: File) => {
     try {
-      const ext = file.name.split('.').pop();
-      const path = `${player.id}.${ext}`;
+      // Always use a consistent path regardless of file extension
+      const path = `${player.id}`;
+      
+      // Remove existing file first to avoid extension conflicts
+      await supabase.storage
+        .from('player-photos')
+        .remove([path]);
       
       const { error: uploadError } = await supabase.storage
         .from('player-photos')
-        .upload(path, file, { upsert: true });
+        .upload(path, file, { 
+          upsert: true,
+          contentType: file.type,
+        });
       
       if (uploadError) throw uploadError;
 
@@ -58,9 +66,12 @@ export const PlayerManagement = () => {
         .from('player-photos')
         .getPublicUrl(path);
 
+      // Add cache-busting timestamp so the browser fetches the new image
+      const photoUrl = `${publicUrl}?t=${Date.now()}`;
+
       const { error: updateError } = await supabase
         .from('players')
-        .update({ photo_url: publicUrl })
+        .update({ photo_url: photoUrl })
         .eq('id', player.id);
       
       if (updateError) throw updateError;
@@ -68,6 +79,7 @@ export const PlayerManagement = () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
       toast.success(`Photo updated for ${player.name}`);
     } catch (error) {
+      console.error('Photo upload error:', error);
       toast.error('Failed to upload photo');
     }
   };
