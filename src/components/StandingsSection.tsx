@@ -55,7 +55,7 @@ export const StandingsSection = ({
   };
 
   return (
-    <Card className="bg-white/5 border-white/10 backdrop-blur-xl">
+    <Card className="bg-card/80 border-border/50 backdrop-blur-sm">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base font-bold">
           <Icon className={`h-5 w-5 ${getIconColor()}`} />

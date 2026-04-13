@@ -32,7 +32,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background gradient-dark">
       {/* Header */}
-      <header className="bg-gradient-to-r from-black via-red-950/60 to-black border-b border-red-900/30 p-6 pb-4">
+      <header className="bg-card/50 border-b border-border/50 p-6 pb-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Zap className="h-7 w-7 text-primary neon-text-cyan" />

@@ -92,10 +92,8 @@ export const PlayerProfileDialog = ({ open, onOpenChange, playerId, seasonId }: 
                 </div>
                 <div className="text-center p-3 rounded-lg bg-muted/40">
                   <ShieldAlert className="h-4 w-4 mx-auto mb-1 text-destructive" />
-                  <p className="text-2xl font-black text-foreground">
-                    {profile.gamesPlayed > 0 ? (profile.goalsConceded / profile.gamesPlayed).toFixed(2) : '0.00'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Avg Conceded</p>
+                  <p className="text-2xl font-black text-foreground">{profile.goalsConceded}</p>
+                  <p className="text-xs text-muted-foreground">Conceded</p>
                 </div>
               </div>
             ) : (
