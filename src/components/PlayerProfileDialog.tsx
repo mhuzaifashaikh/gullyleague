@@ -81,21 +81,21 @@ export const PlayerProfileDialog = ({ open, onOpenChange, playerId, seasonId }: 
             {profile.isKeeper ? (
               <div className="grid grid-cols-3 gap-3">
                 <div className="text-center p-3 rounded-lg bg-muted/40">
+                  <Users className="h-4 w-4 mx-auto mb-1 text-primary" />
+                  <p className="text-2xl font-black text-foreground">{profile.gamesPlayed}</p>
+                  <p className="text-xs text-muted-foreground">Games</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/40">
                   <Shield className="h-4 w-4 mx-auto mb-1 text-primary" />
                   <p className="text-2xl font-black text-foreground">{profile.gamesWon}</p>
                   <p className="text-xs text-muted-foreground">Won</p>
                 </div>
                 <div className="text-center p-3 rounded-lg bg-muted/40">
                   <ShieldAlert className="h-4 w-4 mx-auto mb-1 text-destructive" />
-                  <p className="text-2xl font-black text-foreground">{profile.goalsConceded}</p>
-                  <p className="text-xs text-muted-foreground">Conceded</p>
-                </div>
-                <div className="text-center p-3 rounded-lg bg-muted/40">
-                  <Target className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
                   <p className="text-2xl font-black text-foreground">
                     {profile.gamesPlayed > 0 ? (profile.goalsConceded / profile.gamesPlayed).toFixed(1) : '0.0'}
                   </p>
-                  <p className="text-xs text-muted-foreground">Avg Conc.</p>
+                  <p className="text-xs text-muted-foreground">Avg Conceded</p>
                 </div>
               </div>
             ) : (
