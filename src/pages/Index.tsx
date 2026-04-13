@@ -14,7 +14,7 @@ import { useActiveSeason } from '@/hooks/useSeasons';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { useGullyDor } from '@/hooks/useGullyDor';
 import { useWeeklyBreakdown } from '@/hooks/useWeeklyBreakdown';
-import { Shield, Zap, Calendar, Clock, Trophy } from 'lucide-react';
+import { Shield, Calendar, Clock, Trophy } from 'lucide-react';
 
 const Index = () => {
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
