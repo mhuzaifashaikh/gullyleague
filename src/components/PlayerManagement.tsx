@@ -5,12 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { usePlayers, useAddPlayer, useDeletePlayer, Player } from '@/hooks/usePlayers';
 import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, Trash2, Users, Camera } from 'lucide-react';
+import { UserPlus, Trash2, Users, Camera, Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
 export const PlayerManagement = () => {
   const [newPlayerName, setNewPlayerName] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
   const { data: players, isLoading } = usePlayers();
   const addPlayer = useAddPlayer();
   const deletePlayer = useDeletePlayer();
@@ -43,12 +45,44 @@ export const PlayerManagement = () => {
     }
   };
 
+  const handleStartEdit = (player: Player) => {
+    setEditingId(player.id);
+    setEditName(player.name);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditName('');
+  };
+
+  const handleSaveEdit = async (player: Player) => {
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      toast.error('Name cannot be empty');
+      return;
+    }
+    if (trimmed === player.name) {
+      handleCancelEdit();
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('players')
+        .update({ name: trimmed })
+        .eq('id', player.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      toast.success(`Renamed to ${trimmed}`);
+      handleCancelEdit();
+    } catch (error) {
+      toast.error('Failed to rename player');
+    }
+  };
+
   const handlePhotoUpload = async (player: Player, file: File) => {
     try {
-      // Always use a consistent path regardless of file extension
       const path = `${player.id}`;
       
-      // Remove existing file first to avoid extension conflicts
       await supabase.storage
         .from('player-photos')
         .remove([path]);
@@ -66,7 +100,6 @@ export const PlayerManagement = () => {
         .from('player-photos')
         .getPublicUrl(path);
 
-      // Add cache-busting timestamp so the browser fetches the new image
       const photoUrl = `${publicUrl}?t=${Date.now()}`;
 
       const { error: updateError } = await supabase
@@ -120,8 +153,8 @@ export const PlayerManagement = () => {
                 key={player.id}
                 className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
               >
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Avatar className="h-8 w-8 shrink-0">
                     {player.photo_url ? (
                       <AvatarImage src={player.photo_url} alt={player.name} />
                     ) : null}
@@ -129,37 +162,81 @@ export const PlayerManagement = () => {
                       {getInitials(player.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium">{player.name}</span>
+                  {editingId === player.id ? (
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="h-7 text-sm flex-1"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveEdit(player);
+                        if (e.key === 'Escape') handleCancelEdit();
+                      }}
+                    />
+                  ) : (
+                    <span className="font-medium truncate">{player.name}</span>
+                  )}
                 </div>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    ref={(el) => { fileInputRefs.current[player.id] = el; }}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handlePhotoUpload(player, file);
-                      e.target.value = '';
-                    }}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                    onClick={() => fileInputRefs.current[player.id]?.click()}
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDeletePlayer(player)}
-                    disabled={deletePlayer.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="flex items-center gap-1 shrink-0">
+                  {editingId === player.id ? (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-primary hover:text-primary hover:bg-primary/10"
+                        onClick={() => handleSaveEdit(player)}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        onClick={handleCancelEdit}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        onClick={() => handleStartEdit(player)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        ref={(el) => { fileInputRefs.current[player.id] = el; }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handlePhotoUpload(player, file);
+                          e.target.value = '';
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        onClick={() => fileInputRefs.current[player.id]?.click()}
+                      >
+                        <Camera className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeletePlayer(player)}
+                        disabled={deletePlayer.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
