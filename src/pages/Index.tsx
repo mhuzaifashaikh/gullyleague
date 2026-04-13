@@ -35,7 +35,7 @@ const Index = () => {
       <header className="bg-card/50 border-b border-border/50 p-6 pb-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <Zap className="h-7 w-7 text-primary neon-text-cyan" />
+            <Trophy className="h-7 w-7 text-primary neon-text-cyan" />
             <h1 className="text-2xl font-black text-foreground tracking-tight">
               GULLY <span className="text-gradient-gold">LEAGUE</span>
             </h1>
