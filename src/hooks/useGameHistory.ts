@@ -79,10 +79,10 @@ export const useUpdateGameWinner = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ gameId, winningTeam }: { gameId: string; winningTeam: 'A' | 'B' }) => {
+    mutationFn: async ({ gameId, winningTeam }: { gameId: string; winningTeam: 'A' | 'B' | 'draw' }) => {
       const { error } = await supabase
         .from('games')
-        .update({ winning_team: winningTeam })
+        .update({ winning_team: winningTeam === 'draw' ? null : winningTeam })
         .eq('id', gameId);
 
       if (error) throw error;

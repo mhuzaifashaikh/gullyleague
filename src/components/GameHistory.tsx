@@ -34,7 +34,7 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
     ? [...selectedGame.teamAPlayers, ...selectedGame.teamBPlayers]
     : [];
 
-  const handleWinnerChange = async (gameId: string, winner: 'A' | 'B') => {
+  const handleWinnerChange = async (gameId: string, winner: 'A' | 'B' | 'draw') => {
     try {
       await updateWinner.mutateAsync({ gameId, winningTeam: winner });
       toast.success('Winner updated!');
@@ -116,7 +116,9 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
                   <div className={`${game.winning_team === 'A' ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
                     Team A {game.winning_team === 'A' && <Trophy className="inline h-3 w-3" />}
                   </div>
-                  <span className="text-muted-foreground">vs</span>
+                  <span className="text-muted-foreground">
+                    {game.winning_team === null ? 'Draw' : 'vs'}
+                  </span>
                   <div className={`${game.winning_team === 'B' ? 'text-secondary font-semibold' : 'text-muted-foreground'}`}>
                     {game.winning_team === 'B' && <Trophy className="inline h-3 w-3" />} Team B
                   </div>
@@ -161,6 +163,14 @@ export const GameHistory = ({ seasonId }: GameHistoryProps) => {
                     disabled={updateWinner.isPending}
                   >
                     Team B
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={selectedGame.winning_team === null ? 'default' : 'outline'}
+                    onClick={() => handleWinnerChange(selectedGame.id, 'draw')}
+                    disabled={updateWinner.isPending}
+                  >
+                    Draw
                   </Button>
                 </div>
               </div>
