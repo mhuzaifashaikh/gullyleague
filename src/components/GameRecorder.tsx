@@ -5,7 +5,7 @@ import { PlayerSelector } from './PlayerSelector';
 import { Player } from '@/hooks/usePlayers';
 import { useEndGame } from '@/hooks/useGames';
 import { getGameState, addEvent, getGameEvents, getGameMinute, endGame as endGameState } from '@/lib/gameStore';
-import { Goal, Footprints, Flag, Trophy, Clock } from 'lucide-react';
+import { Goal, Footprints, Flag, Trophy, Clock, Handshake } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface GameRecorderProps {
@@ -34,6 +34,11 @@ export const GameRecorder = ({ players, onGameEnd }: GameRecorderProps) => {
   const allPlayersInGame = players.filter(
     p => gameState.teamAPlayers.includes(p.id) || gameState.teamBPlayers.includes(p.id)
   );
+
+  const teamAKeeper = players.find(p => p.id === gameState.teamAKeeper);
+  const teamBKeeper = players.find(p => p.id === gameState.teamBKeeper);
+  const teamALabel = teamAKeeper ? `Team ${teamAKeeper.name}` : 'Team A';
+  const teamBLabel = teamBKeeper ? `Team ${teamBKeeper.name}` : 'Team B';
   
   const handleEventClick = (type: 'goal' | 'assist') => {
     setSelectorType(type);
@@ -47,7 +52,7 @@ export const GameRecorder = ({ players, onGameEnd }: GameRecorderProps) => {
     toast.success(`${selectorType === 'goal' ? '⚽ Goal' : '👟 Assist'} recorded for ${playerName} at ${minute}'!`);
   };
   
-  const handleEndGame = async (winningTeam: 'A' | 'B') => {
+  const handleEndGame = async (winningTeam: 'A' | 'B' | 'draw') => {
     if (!gameState.gameId) return;
     
     try {
@@ -140,14 +145,23 @@ export const GameRecorder = ({ players, onGameEnd }: GameRecorderProps) => {
               className="w-full h-14 text-lg gradient-pitch"
               disabled={endGameMutation.isPending}
             >
-              Team A Wins
+              {teamALabel} Wins
             </Button>
             <Button
               onClick={() => handleEndGame('B')}
               className="w-full h-14 text-lg gradient-fire"
               disabled={endGameMutation.isPending}
             >
-              Team B Wins
+              {teamBLabel} Wins
+            </Button>
+            <Button
+              onClick={() => handleEndGame('draw')}
+              variant="outline"
+              className="w-full h-14 text-lg"
+              disabled={endGameMutation.isPending}
+            >
+              <Handshake className="h-5 w-5 mr-2" />
+              Draw
             </Button>
             <Button
               variant="ghost"
