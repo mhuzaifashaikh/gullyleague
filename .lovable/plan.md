@@ -1,42 +1,36 @@
+## Goal
 
+Two improvements to the admin "End Game" flow:
 
-## Player Profile Dialog
+1. **Add a "Draw" option** — neither team gets win/keeper points, but goals & assists still count.
+2. **Replace generic "Team A Wins / Team B Wins" buttons** with each team labelled by its goalkeeper's name (e.g. "Team Ali Wins" / "Team Muhammad Wins").
 
-### Overview
-Make every player name clickable across the app (Gully D'Or, Standings, Leaderboards, Week Details). Clicking opens a player profile dialog with stats, best game, and a photo (uploaded by admin).
+## Changes
 
-### What gets built
+### 1. `src/components/GameRecorder.tsx` (end-game UI)
 
-**1. New hook: `src/hooks/usePlayerProfile.ts`**
-- Takes a `playerId` and `seasonId`
-- Queries `game_players` to count games played
-- Queries `game_events` to total goals and assists
-- Per-game breakdown to find best game (max goals+assists), including which week number it was
-- Returns: `{ gamesPlayed, goals, assists, bestGame: { weekLabel, goalsAndAssists } }`
+- Look up the Team A keeper and Team B keeper from `players` using `gameState.teamAKeeper` and `gameState.teamBKeeper`.
+- Update the "Who won?" card to show three buttons:
+  - `Team {keeperA.name} Wins` → calls `handleEndGame('A')`
+  - `Team {keeperB.name} Wins` → calls `handleEndGame('B')`
+  - `Draw` (neutral styling, e.g. outline) → calls `handleEndGame('draw')`
+- Widen the `handleEndGame` parameter type to `'A' | 'B' | 'draw'`.
 
-**2. New component: `src/components/PlayerProfileDialog.tsx`**
-- Dialog with player photo (Avatar with fallback to initials), name, and stats
-- Stats displayed: Games Played, Goals, Assists, Best Game (e.g. "Week 3 (5 G+A)")
-- Photo pulled from `players.photo_url`
+### 2. `src/hooks/useGames.ts` (`useEndGame`)
 
-**3. Photo upload for admin**
-- Database: Create a storage bucket `player-photos` for images
-- In the Admin player management section, add an upload button next to each player
-- On upload, store file in storage bucket and update `players.photo_url`
+- Change `EndGameParams.winningTeam` type to `'A' | 'B' | 'draw'`.
+- When value is `'draw'`, write `winning_team: null` to the `games` row (existing column is already nullable). Goals & assists are still inserted as today.
+- No schema change required.
 
-**4. Make names clickable in these components**
-- `StandingsSection` — player names become clickable buttons
-- `GullyDorDialog` — player names become clickable
-- `RankingList` — player names become clickable
-- `WeekDetailDialog` — player names in teams/goals/assists become clickable
+### 3. Verify downstream point logic (no edits expected)
 
-Each click sets state for `selectedPlayerId` and opens the `PlayerProfileDialog`.
+- `useLeaderboard` and `useGullyDor` already only award keeper-win / team-win points when `winning_team === 'A'` or `'B'`. A `null` value naturally yields zero win points, while goals/assists keep counting. Confirmed — no changes needed.
 
-### Database changes
-- Create storage bucket `player-photos` (public, for player avatars)
-- No table schema changes needed (`players.photo_url` column already exists)
+### 4. Game history display (`src/components/GameHistory.tsx`)
 
-### Files to create/modify
-- **Create**: `src/hooks/usePlayerProfile.ts`, `src/components/PlayerProfileDialog.tsx`
-- **Modify**: `src/components/StandingsSection.tsx`, `src/components/GullyDorDialog.tsx`, `src/components/RankingList.tsx`, `src/components/WeekDetailDialog.tsx`, `src/pages/Leaderboards.tsx`, `src/pages/Index.tsx`, `src/components/PlayerManagement.tsx` (add photo upload)
+- Quick check & update: if it currently renders "Team A won" / "Team B won", add a "Draw" label when `winning_team` is `null` so past draws read sensibly. (Will inspect during implementation and adjust only if needed.)
 
+## Out of scope
+
+- No DB migration (the column already supports `null`).
+- No changes to the Gully D'Or scoring formula itself.
