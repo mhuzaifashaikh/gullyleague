@@ -11,7 +11,7 @@ interface StartGameParams {
 
 interface EndGameParams {
   gameId: string;
-  winningTeam: 'A' | 'B';
+  winningTeam: 'A' | 'B' | 'draw';
   events: Array<{ type: 'goal' | 'assist'; playerId: string; minute: number }>;
 }
 
@@ -57,7 +57,10 @@ export const useEndGame = () => {
       // Update game with winner
       const { error: updateError } = await supabase
         .from('games')
-        .update({ winning_team: winningTeam, is_active: false })
+        .update({
+          winning_team: winningTeam === 'draw' ? null : winningTeam,
+          is_active: false,
+        })
         .eq('id', gameId);
       
       if (updateError) throw updateError;
